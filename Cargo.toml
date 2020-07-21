@@ -1,0 +1,11 @@
+[package]
+name = "smmdb-client"
+version = "0.1.0"
+authors = ["Mario Reder <mreder1289@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+dirs = "3.0"
+env_logger = "0.7"
+iced = { git = "https://github.com/hecrj/iced.git", commit = "4030326", features = [ "image" ] }
+nfd = "0.0"
