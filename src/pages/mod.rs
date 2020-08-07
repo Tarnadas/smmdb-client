@@ -1,4 +1,4 @@
-use crate::{components::SaveButton, styles::*};
+use crate::{styles::*, Component};
 
 use iced::{Column, Text};
 
@@ -11,7 +11,10 @@ pub enum PageType {
 }
 
 pub trait Page {
-    fn view<'a>(&'a mut self, save_buttons: &'a mut Vec<SaveButton>) -> Column<crate::Message>;
+    fn view<'a>(
+        &'a mut self,
+        components: &'a mut Vec<Box<dyn Component + '_>>,
+    ) -> Column<crate::Message>;
 }
 
 pub fn generate_page<'a>(

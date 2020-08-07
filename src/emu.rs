@@ -1,16 +1,15 @@
-use crate::{components::SaveButton, EmuType};
+use crate::{components::SaveButton, Component, EmuType};
 
 use std::path::PathBuf;
 
-pub fn guess_emu_dir() -> Vec<SaveButton> {
-    let mut res = vec![];
+pub fn guess_emu_dir(dirs: &mut Vec<Box<dyn Component>>) {
     if let Some(data_dir) = dirs::data_dir() {
         let guesses = ["yuzu", "yuzu-emu"];
         for guess in guesses.iter() {
             let mut data_dir = data_dir.clone();
             data_dir.push(guess);
             if data_dir.as_path().exists() && is_yuzu_dir(data_dir.clone()) {
-                res.push(SaveButton::new(data_dir, EmuType::Yuzu));
+                dirs.push(Box::new(SaveButton::new(data_dir, EmuType::Yuzu)));
             }
         }
     }
@@ -20,11 +19,10 @@ pub fn guess_emu_dir() -> Vec<SaveButton> {
             let mut data_dir = data_dir.clone();
             data_dir.push(guess);
             if data_dir.as_path().exists() && is_ryujinx_dir(data_dir.clone()) {
-                res.push(SaveButton::new(data_dir, EmuType::Ryujinx));
+                dirs.push(Box::new(SaveButton::new(data_dir, EmuType::Ryujinx)));
             }
         }
     }
-    res
 }
 
 pub fn is_yuzu_dir(path: PathBuf) -> bool {

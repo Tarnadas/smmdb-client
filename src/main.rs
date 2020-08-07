@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate downcast_rs;
+
 mod app;
 mod components;
 mod emu;
@@ -6,6 +9,7 @@ mod save;
 mod styles;
 
 pub use app::Message;
+pub use components::Component;
 pub use pages::{generate_page, Page};
 pub use save::{EmuType, Save};
 

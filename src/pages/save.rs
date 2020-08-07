@@ -1,24 +1,17 @@
-use crate::{generate_page, styles::*, Component, Message, Page};
+use crate::{components::SaveButton, generate_page, styles::*, Message, Page};
 
 use iced::{button, Button, Column, Text};
 
-pub struct InitPage {
-    open_custom_save: button::State,
-}
+pub struct SavePage;
 
-impl InitPage {
-    pub fn new() -> InitPage {
-        InitPage {
-            open_custom_save: button::State::new(),
-        }
+impl SavePage {
+    pub fn new() -> SavePage {
+        SavePage {}
     }
 }
 
-impl Page for InitPage {
-    fn view<'a>(
-        &'a mut self,
-        save_buttons: &'a mut Vec<Box<dyn Component + '_>>,
-    ) -> Column<crate::Message> {
+impl Page for SavePage {
+    fn view<'a>(&'a mut self, save_buttons: &'a mut Vec<SaveButton>) -> Column<crate::Message> {
         let mut content = save_buttons.iter_mut().fold(
             Column::new()
                 .padding(CONTAINER_PADDING)

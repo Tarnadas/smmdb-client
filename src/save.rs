@@ -19,6 +19,10 @@ impl Save {
     pub fn new(location: PathBuf, emu_type: EmuType) -> Save {
         Save { location, emu_type }
     }
+
+    pub fn get_location(&self) -> &PathBuf {
+        &self.location
+    }
 }
 
 impl Display for Save {
