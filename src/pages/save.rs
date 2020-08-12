@@ -19,11 +19,11 @@ impl Page for SavePage {
         let mut content = Column::new()
             .padding(CONTAINER_PADDING)
             .spacing(LIST_SPACING);
-        // for component in components.iter_mut() {
-        //     if let Some(_course_panel) = component.downcast_mut::<CoursePanel>() {
-        //         content = content.push(component.view());
-        //     }
-        // }
+        for component in components.iter_mut() {
+            if let Some(_course_panel) = component.downcast_mut::<CoursePanel>() {
+                content = content.push(component.view());
+            }
+        }
 
         generate_page(title, content)
     }

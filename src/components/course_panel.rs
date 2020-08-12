@@ -12,7 +12,15 @@ pub struct CoursePanel {
 
 impl Component for CoursePanel {
     fn view(&mut self) -> Element<Message, Renderer> {
-        Text::new(format!("{:?}", self.course)).into()
+        Text::new(format!(
+            "{:?}",
+            self.course
+                .get_course()
+                .get_course()
+                .get_header()
+                .get_title()
+        ))
+        .into()
     }
 }
 

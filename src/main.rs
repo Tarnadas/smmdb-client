@@ -5,12 +5,14 @@ mod app;
 mod components;
 mod emu;
 mod pages;
+mod save_data;
 mod styles;
 
 pub use app::Message;
 pub use components::Component;
 pub use emu::{EmuSave, EmuType};
 pub use pages::{generate_page, Page};
+pub use save_data::SaveData;
 
 fn main() {
     use app::*;

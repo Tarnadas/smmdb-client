@@ -2,7 +2,7 @@ use crate::{
     components::SaveButton,
     emu::*,
     pages::{InitPage, SavePage},
-    Component, EmuSave, EmuType, Page,
+    Component, EmuSave, EmuType, Page, SaveData,
 };
 
 use iced::{executor, Application, Command, Element};
@@ -11,8 +11,8 @@ use std::path::PathBuf;
 
 pub struct App {
     current_page: Box<dyn Page>,
-    save: Option<(smmdb::Save, PathBuf)>,
-    save_buttons: Vec<Box<dyn Component>>,
+    save_data: Option<SaveData>,
+    components: Vec<Box<dyn Component>>,
 }
 
 #[derive(Clone, Debug)]
@@ -29,13 +29,13 @@ impl Application for App {
     type Flags = ();
 
     fn new(_flags: ()) -> (App, Command<Self::Message>) {
-        let mut save_buttons = vec![];
-        guess_emu_dir(&mut save_buttons);
+        let mut components = vec![];
+        guess_emu_dir(&mut components);
         (
             App {
                 current_page: Box::new(InitPage::new()),
-                save: None,
-                save_buttons,
+                save_data: None,
+                components,
             },
             Command::none(),
         )
@@ -59,10 +59,10 @@ impl Application for App {
                     Response::Okay(file_path) => {
                         let file_path: PathBuf = file_path.into();
                         if is_yuzu_dir(file_path.clone()) {
-                            self.save_buttons
+                            self.components
                                 .insert(0, Box::new(SaveButton::new(file_path, EmuType::Yuzu)));
                         } else if is_ryujinx_dir(file_path.clone()) {
-                            self.save_buttons
+                            self.components
                                 .insert(0, Box::new(SaveButton::new(file_path, EmuType::Ryujinx)));
                         }
                         // TODO save path on success
@@ -82,7 +82,7 @@ impl Application for App {
                 }),
             },
             Message::LoadSave(smmdb_save, location) => {
-                self.save = Some((smmdb_save, location));
+                self.save_data = Some(SaveData::new(smmdb_save, location, &mut self.components));
                 self.current_page = Box::new(SavePage::new());
                 Command::none()
             }
@@ -97,14 +97,14 @@ impl Application for App {
     fn view(&mut self) -> Element<Self::Message> {
         if self.current_page.downcast_ref::<InitPage>().is_some() {
             self.current_page
-                .view("Please select your save folder", &mut self.save_buttons)
+                .view("Please select your save folder", &mut self.components)
                 .into()
         } else if self.current_page.downcast_ref::<SavePage>().is_some() {
-            let title = self.save.as_ref().unwrap().1.to_str().unwrap();
-            self.current_page
-                .view(title, unsafe { &mut *std::ptr::null_mut() })
-                .into()
+            let save_data = self.save_data.as_ref().unwrap();
+            let title = save_data.get_location().to_str().unwrap();
+            self.current_page.view(title, &mut self.components).into()
         } else {
+            // TODO find better way to exhaust this
             panic!()
         }
     }
