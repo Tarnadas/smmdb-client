@@ -1,21 +1,22 @@
 use crate::{styles::*, Component};
 
+use downcast_rs::DowncastSync;
 use iced::{Column, Text};
 
 mod init;
+mod save;
 
 pub use init::InitPage;
+pub use save::SavePage;
 
-pub enum PageType {
-    Init,
-}
-
-pub trait Page {
+pub trait Page: DowncastSync {
     fn view<'a>(
         &'a mut self,
+        title: &str,
         components: &'a mut Vec<Box<dyn Component + '_>>,
     ) -> Column<crate::Message>;
 }
+impl_downcast!(sync Page);
 
 pub fn generate_page<'a>(
     title: &str,

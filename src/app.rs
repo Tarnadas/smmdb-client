@@ -1,4 +1,9 @@
-use crate::{components::SaveButton, emu::*, pages::InitPage, Component, EmuType, Page, Save};
+use crate::{
+    components::SaveButton,
+    emu::*,
+    pages::{InitPage, SavePage},
+    Component, EmuSave, EmuType, Page,
+};
 
 use iced::{executor, Application, Command, Element};
 use nfd::Response;
@@ -6,21 +11,20 @@ use std::path::PathBuf;
 
 pub struct App {
     current_page: Box<dyn Page>,
-    save: Option<smmdb::Save>,
+    save: Option<(smmdb::Save, PathBuf)>,
     save_buttons: Vec<Box<dyn Component>>,
 }
 
 #[derive(Clone, Debug)]
 pub enum Message {
-    ChangeView,
-    OpenSave(Save),
+    OpenSave(EmuSave),
     OpenCustomSave,
-    LoadSave(smmdb::Save),
+    LoadSave(smmdb::Save, PathBuf),
     LoadSaveError(String),
 }
 
 impl Application for App {
-    type Executor = executor::Null;
+    type Executor = executor::Default;
     type Message = Message;
     type Flags = ();
 
@@ -43,50 +47,47 @@ impl Application for App {
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
-            Message::ChangeView => unimplemented!(),
             Message::OpenSave(save) => Command::perform(
-                async move { smmdb::Save::new(save.get_location().clone()).await },
-                |res| match res {
-                    Ok(save) => Message::LoadSave(save),
+                smmdb::Save::new(save.get_smm2_location()),
+                move |res| match res {
+                    Ok(smmdb_save) => Message::LoadSave(smmdb_save, save.get_location().clone()),
                     Err(err) => Message::LoadSaveError(err.into()),
                 },
             ),
-            Message::OpenCustomSave => {
-                match nfd::open_pick_folder(None) {
-                    Ok(result) => match result {
-                        Response::Okay(file_path) => {
-                            let file_path: PathBuf = file_path.into();
-                            if is_yuzu_dir(file_path.clone()) {
-                                self.save_buttons
-                                    .insert(0, Box::new(SaveButton::new(file_path, EmuType::Yuzu)));
-                            } else if is_ryujinx_dir(file_path.clone()) {
-                                self.save_buttons.insert(
-                                    0,
-                                    Box::new(SaveButton::new(file_path, EmuType::Ryujinx)),
-                                );
-                            }
-                            Command::none()
+            Message::OpenCustomSave => match nfd::open_pick_folder(None) {
+                Ok(result) => match result {
+                    Response::Okay(file_path) => {
+                        let file_path: PathBuf = file_path.into();
+                        if is_yuzu_dir(file_path.clone()) {
+                            self.save_buttons
+                                .insert(0, Box::new(SaveButton::new(file_path, EmuType::Yuzu)));
+                        } else if is_ryujinx_dir(file_path.clone()) {
+                            self.save_buttons
+                                .insert(0, Box::new(SaveButton::new(file_path, EmuType::Ryujinx)));
                         }
-                        Response::OkayMultiple(_files) => {
-                            println!("Not multifile select");
-                            Command::none()
-                        }
-                        Response::Cancel => {
-                            println!("User canceled");
-                            Command::none()
-                        }
-                    },
-                    Err(err) => Command::perform(async {}, move |_| {
-                        Message::LoadSaveError(format!("{:?}", err))
-                    }),
-                }
-                // .unwrap_or_else(|err| Message::LoadSaveError(err.into()));
-            }
-            Message::LoadSave(save) => {
-                self.save = Some(save);
+                        // TODO save path on success
+                        Command::none()
+                    }
+                    Response::OkayMultiple(_files) => {
+                        println!("Not multifile select");
+                        Command::none()
+                    }
+                    Response::Cancel => {
+                        println!("User canceled");
+                        Command::none()
+                    }
+                },
+                Err(err) => Command::perform(async {}, move |_| {
+                    Message::LoadSaveError(format!("{:?}", err))
+                }),
+            },
+            Message::LoadSave(smmdb_save, location) => {
+                self.save = Some((smmdb_save, location));
+                self.current_page = Box::new(SavePage::new());
                 Command::none()
             }
             Message::LoadSaveError(err) => {
+                dbg!(&err);
                 // TODO show error
                 Command::none()
             }
@@ -94,6 +95,17 @@ impl Application for App {
     }
 
     fn view(&mut self) -> Element<Self::Message> {
-        self.current_page.view(&mut self.save_buttons).into()
+        if self.current_page.downcast_ref::<InitPage>().is_some() {
+            self.current_page
+                .view("Please select your save folder", &mut self.save_buttons)
+                .into()
+        } else if self.current_page.downcast_ref::<SavePage>().is_some() {
+            let title = self.save.as_ref().unwrap().1.to_str().unwrap();
+            self.current_page
+                .view(title, unsafe { &mut *std::ptr::null_mut() })
+                .into()
+        } else {
+            panic!()
+        }
     }
 }

@@ -17,6 +17,7 @@ impl InitPage {
 impl Page for InitPage {
     fn view<'a>(
         &'a mut self,
+        title: &str,
         save_buttons: &'a mut Vec<Box<dyn Component + '_>>,
     ) -> Column<crate::Message> {
         let mut content = save_buttons.iter_mut().fold(
@@ -34,6 +35,6 @@ impl Page for InitPage {
             .on_press(Message::OpenCustomSave),
         );
 
-        generate_page("Please select your save folder", content)
+        generate_page(title, content)
     }
 }

@@ -1,6 +1,10 @@
-use crate::{components::SaveButton, Component, EmuType};
+use crate::{components::SaveButton, Component};
 
 use std::path::PathBuf;
+
+mod save;
+
+pub use save::*;
 
 pub fn guess_emu_dir(dirs: &mut Vec<Box<dyn Component>>) {
     if let Some(data_dir) = dirs::data_dir() {

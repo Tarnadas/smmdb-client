@@ -1,6 +1,6 @@
-use crate::{components::SaveButton, generate_page, styles::*, Message, Page};
+use crate::{components::CoursePanel, generate_page, styles::*, Component, Page};
 
-use iced::{button, Button, Column, Text};
+use iced::Column;
 
 pub struct SavePage;
 
@@ -11,22 +11,20 @@ impl SavePage {
 }
 
 impl Page for SavePage {
-    fn view<'a>(&'a mut self, save_buttons: &'a mut Vec<SaveButton>) -> Column<crate::Message> {
-        let mut content = save_buttons.iter_mut().fold(
-            Column::new()
-                .padding(CONTAINER_PADDING)
-                .spacing(LIST_SPACING),
-            |acc, save_button| acc.push(save_button.view()),
-        );
+    fn view<'a>(
+        &'a mut self,
+        title: &str,
+        components: &'a mut Vec<Box<dyn Component + '_>>,
+    ) -> Column<crate::Message> {
+        let mut content = Column::new()
+            .padding(CONTAINER_PADDING)
+            .spacing(LIST_SPACING);
+        // for component in components.iter_mut() {
+        //     if let Some(_course_panel) = component.downcast_mut::<CoursePanel>() {
+        //         content = content.push(component.view());
+        //     }
+        // }
 
-        content = content.push(
-            Button::new(
-                &mut self.open_custom_save,
-                Text::new("Select another save folder"),
-            )
-            .on_press(Message::OpenCustomSave),
-        );
-
-        generate_page("Please select your save folder", content)
+        generate_page(title, content)
     }
 }

@@ -1,4 +1,4 @@
-use crate::{Component, EmuType, Message, Save};
+use crate::{Component, EmuSave, EmuType, Message};
 
 use iced::{button, Button, Text};
 use iced_native::Element;
@@ -8,7 +8,7 @@ use std::path::PathBuf;
 #[derive(Clone, Debug)]
 pub struct SaveButton {
     state: button::State,
-    save: Save,
+    save: EmuSave,
 }
 
 impl Component for SaveButton {
@@ -23,7 +23,7 @@ impl SaveButton {
     pub fn new(location: PathBuf, emu_type: EmuType) -> SaveButton {
         SaveButton {
             state: button::State::new(),
-            save: Save::new(location, emu_type),
+            save: EmuSave::new(location, emu_type),
         }
     }
 }
