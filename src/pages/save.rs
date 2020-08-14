@@ -1,12 +1,16 @@
 use crate::{components::CoursePanel, generate_page, styles::*, Component, Page};
 
-use iced::Column;
+use iced::{scrollable, Element, Scrollable};
 
-pub struct SavePage;
+pub struct SavePage {
+    state: scrollable::State,
+}
 
 impl SavePage {
     pub fn new() -> SavePage {
-        SavePage {}
+        SavePage {
+            state: scrollable::State::new(),
+        }
     }
 }
 
@@ -15,8 +19,8 @@ impl Page for SavePage {
         &'a mut self,
         title: &str,
         components: &'a mut Vec<Box<dyn Component + '_>>,
-    ) -> Column<crate::Message> {
-        let mut content = Column::new()
+    ) -> Element<crate::Message> {
+        let mut content = Scrollable::new(&mut self.state)
             .padding(CONTAINER_PADDING)
             .spacing(LIST_SPACING);
         for component in components.iter_mut() {
@@ -25,6 +29,6 @@ impl Page for SavePage {
             }
         }
 
-        generate_page(title, content)
+        generate_page(title, content).into()
     }
 }

@@ -1,7 +1,7 @@
 use crate::{styles::*, Component};
 
 use downcast_rs::DowncastSync;
-use iced::{Column, Text};
+use iced::{Column, Element, Text};
 
 mod init;
 mod save;
@@ -14,14 +14,14 @@ pub trait Page: DowncastSync {
         &'a mut self,
         title: &str,
         components: &'a mut Vec<Box<dyn Component + '_>>,
-    ) -> Column<crate::Message>;
+    ) -> Element<crate::Message>;
 }
 impl_downcast!(sync Page);
 
-pub fn generate_page<'a>(
-    title: &str,
-    content: Column<'a, crate::Message>,
-) -> Column<'a, crate::Message> {
+pub fn generate_page<'a, T>(title: &str, content: T) -> Column<'a, crate::Message>
+where
+    T: Into<Element<'a, crate::Message>>,
+{
     Column::new()
         .push(Text::new(title).size(36))
         .push(content)
