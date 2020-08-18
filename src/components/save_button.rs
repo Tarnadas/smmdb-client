@@ -1,8 +1,6 @@
 use crate::{Component, EmuSave, EmuType, Message};
 
-use iced::{button, Button, Text};
-use iced_native::Element;
-use iced_wgpu::Renderer;
+use iced::{button, Button, Element, Text};
 use std::path::PathBuf;
 
 #[derive(Clone, Debug)]
@@ -12,7 +10,7 @@ pub struct SaveButton {
 }
 
 impl Component for SaveButton {
-    fn view(&mut self) -> Element<Message, Renderer> {
+    fn view(&mut self) -> Element<Message> {
         Button::new(&mut self.state, Text::new(format!("{}", self.save)))
             .on_press(Message::OpenSave(self.save.clone()))
             .into()

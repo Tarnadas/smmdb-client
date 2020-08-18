@@ -3,13 +3,13 @@ use crate::{components::CoursePanel, Component};
 use std::path::PathBuf;
 
 pub struct SaveData {
-    save: smmdb::Save,
+    save: smmdb_lib::Save,
     location: PathBuf,
 }
 
 impl SaveData {
     pub fn new(
-        save: smmdb::Save,
+        save: smmdb_lib::Save,
         location: PathBuf,
         course_panels: &mut Vec<Box<dyn Component>>,
     ) -> SaveData {

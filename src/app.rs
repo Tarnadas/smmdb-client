@@ -2,7 +2,8 @@ use crate::{
     components::SaveButton,
     emu::*,
     pages::{InitPage, SavePage},
-    Component, EmuSave, EmuType, Page, SaveData,
+    smmdb::{Course2Response, QueryParams},
+    Component, EmuSave, EmuType, Page, SaveData, Smmdb,
 };
 
 use iced::{executor, Application, Command, Element};
@@ -13,14 +14,18 @@ pub struct App {
     current_page: Box<dyn Page>,
     save_data: Option<SaveData>,
     components: Vec<Box<dyn Component>>,
+    smmdb: Smmdb,
 }
 
 #[derive(Clone, Debug)]
 pub enum Message {
     OpenSave(EmuSave),
     OpenCustomSave,
-    LoadSave(smmdb::Save, PathBuf),
+    LoadSave(smmdb_lib::Save, PathBuf),
     LoadSaveError(String),
+    FetchCourses(QueryParams),
+    FetchError(String),
+    SetSmmdbCourses(Vec<Course2Response>),
 }
 
 impl Application for App {
@@ -36,8 +41,9 @@ impl Application for App {
                 current_page: Box::new(InitPage::new()),
                 save_data: None,
                 components,
+                smmdb: Smmdb::new(),
             },
-            Command::none(),
+            Command::perform(async {}, |_| Message::FetchCourses(QueryParams::default())),
         )
     }
 
@@ -47,13 +53,16 @@ impl Application for App {
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
-            Message::OpenSave(save) => Command::perform(
-                smmdb::Save::new(save.get_smm2_location()),
-                move |res| match res {
-                    Ok(smmdb_save) => Message::LoadSave(smmdb_save, save.get_location().clone()),
-                    Err(err) => Message::LoadSaveError(err.into()),
-                },
-            ),
+            Message::OpenSave(save) => {
+                Command::perform(smmdb_lib::Save::new(save.get_smm2_location()), move |res| {
+                    match res {
+                        Ok(smmdb_save) => {
+                            Message::LoadSave(smmdb_save, save.get_location().clone())
+                        }
+                        Err(err) => Message::LoadSaveError(err.into()),
+                    }
+                })
+            }
             Message::OpenCustomSave => match nfd::open_pick_folder(None) {
                 Ok(result) => match result {
                     Response::Okay(file_path) => {
@@ -89,6 +98,21 @@ impl Application for App {
             Message::LoadSaveError(err) => {
                 dbg!(&err);
                 // TODO show error
+                Command::none()
+            }
+            Message::FetchCourses(query_params) => {
+                Command::perform(Smmdb::update(query_params), move |res| match res {
+                    Ok(courses) => Message::SetSmmdbCourses(courses),
+                    Err(err) => Message::FetchError(err.to_string()),
+                })
+            }
+            Message::FetchError(err) => {
+                dbg!(err);
+                // TODO handle error
+                Command::none()
+            }
+            Message::SetSmmdbCourses(courses) => {
+                self.smmdb.set_courses(courses, &mut self.components);
                 Command::none()
             }
         }

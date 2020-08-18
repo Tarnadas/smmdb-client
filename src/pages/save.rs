@@ -1,15 +1,21 @@
-use crate::{components::CoursePanel, generate_page, styles::*, Component, Page};
+use crate::{
+    components::{CoursePanel, SmmdbCoursePanel},
+    widgets::{SaveWidget, SmmdbWidget},
+    Component, Page,
+};
 
-use iced::{scrollable, Element, Scrollable};
+use iced::{Element, Row};
 
 pub struct SavePage {
-    state: scrollable::State,
+    save_widget: SaveWidget,
+    smmdb_widget: SmmdbWidget,
 }
 
 impl SavePage {
     pub fn new() -> SavePage {
         SavePage {
-            state: scrollable::State::new(),
+            save_widget: SaveWidget::new(),
+            smmdb_widget: SmmdbWidget::new(),
         }
     }
 }
@@ -20,15 +26,34 @@ impl Page for SavePage {
         title: &str,
         components: &'a mut Vec<Box<dyn Component + '_>>,
     ) -> Element<crate::Message> {
-        let mut content = Scrollable::new(&mut self.state)
-            .padding(CONTAINER_PADDING)
-            .spacing(LIST_SPACING);
-        for component in components.iter_mut() {
-            if let Some(_course_panel) = component.downcast_mut::<CoursePanel>() {
-                content = content.push(component.view());
-            }
-        }
+        let mut content = Row::new();
 
-        generate_page(title, content).into()
+        let mut course_panels: Vec<&mut CoursePanel> = vec![];
+        let mut smmdb_course_panels: Vec<&mut SmmdbCoursePanel> = vec![];
+
+        components.into_iter().for_each(|component| {
+            if let Some(course_panel) = component.downcast_mut::<CoursePanel>() {
+                course_panels.push(course_panel);
+            } else if let Some(course_panel) = component.downcast_mut::<SmmdbCoursePanel>() {
+                smmdb_course_panels.push(course_panel);
+            }
+        });
+        // .collect::<Vec<_>>()
+        // .filter(|c| c.is_some())
+        // .map(|c| c.unwrap())
+        // .collect();
+
+        // let smmdb_course_panels: Vec<&mut SmmdbCoursePanel> = components
+        //     .into_iter()
+        //     .map(|component| component.downcast_mut::<SmmdbCoursePanel>())
+        //     // .collect::<Vec<_>>()
+        //     .filter(|c| c.is_some())
+        //     .map(|c| c.unwrap())
+        //     .collect();
+
+        content = content.push(self.save_widget.view(course_panels));
+        content = content.push(self.smmdb_widget.view(smmdb_course_panels));
+
+        content.into()
     }
 }
