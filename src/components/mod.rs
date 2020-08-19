@@ -1,6 +1,5 @@
 use crate::Message;
 
-use downcast_rs::DowncastSync;
 use iced_native::Element;
 use iced_wgpu::Renderer;
 
@@ -12,7 +11,6 @@ pub use course_panel::*;
 pub use save_button::*;
 pub use smmdb_course_panel::*;
 
-pub trait Component: DowncastSync {
+pub trait Component {
     fn view(&mut self) -> Element<Message, Renderer>;
 }
-impl_downcast!(sync Component);

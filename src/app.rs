@@ -1,9 +1,8 @@
 use crate::{
-    components::SaveButton,
     emu::*,
     pages::{InitPage, SavePage},
     smmdb::{Course2Response, QueryParams},
-    Component, EmuSave, EmuType, Page, SaveData, Smmdb,
+    EmuSave, Page, Smmdb,
 };
 
 use iced::{executor, Application, Command, Element};
@@ -11,9 +10,7 @@ use nfd::Response;
 use std::path::PathBuf;
 
 pub struct App {
-    current_page: Box<dyn Page>,
-    save_data: Option<SaveData>,
-    components: Vec<Box<dyn Component>>,
+    current_page: Page,
     smmdb: Smmdb,
 }
 
@@ -34,16 +31,17 @@ impl Application for App {
     type Flags = ();
 
     fn new(_flags: ()) -> (App, Command<Self::Message>) {
-        let mut components = vec![];
-        guess_emu_dir(&mut components);
+        let components = guess_emu_dir();
+        let smmdb = Smmdb::new();
+        let query_params = smmdb.get_query_params().clone();
         (
             App {
-                current_page: Box::new(InitPage::new()),
-                save_data: None,
-                components,
-                smmdb: Smmdb::new(),
+                current_page: Page::Init(InitPage::new(components)),
+                smmdb,
             },
-            Command::perform(async {}, |_| Message::FetchCourses(QueryParams::default())),
+            Command::perform(async {}, move |_| {
+                Message::FetchCourses(query_params.clone())
+            }),
         )
     }
 
@@ -68,11 +66,13 @@ impl Application for App {
                     Response::Okay(file_path) => {
                         let file_path: PathBuf = file_path.into();
                         if is_yuzu_dir(file_path.clone()) {
-                            self.components
-                                .insert(0, Box::new(SaveButton::new(file_path, EmuType::Yuzu)));
+                            // TODO
+                            // self.components
+                            //     .insert(0, Box::new(SaveButton::new(file_path, EmuType::Yuzu)));
                         } else if is_ryujinx_dir(file_path.clone()) {
-                            self.components
-                                .insert(0, Box::new(SaveButton::new(file_path, EmuType::Ryujinx)));
+                            // TODO
+                            // self.components
+                            //     .insert(0, Box::new(SaveButton::new(file_path, EmuType::Ryujinx)));
                         }
                         // TODO save path on success
                         Command::none()
@@ -91,8 +91,8 @@ impl Application for App {
                 }),
             },
             Message::LoadSave(smmdb_save, location) => {
-                self.save_data = Some(SaveData::new(smmdb_save, location, &mut self.components));
-                self.current_page = Box::new(SavePage::new());
+                // self.save_data = Some(SaveData::new(smmdb_save, location));
+                self.current_page = Page::Save(SavePage::new(smmdb_save, location));
                 Command::none()
             }
             Message::LoadSaveError(err) => {
@@ -112,24 +112,16 @@ impl Application for App {
                 Command::none()
             }
             Message::SetSmmdbCourses(courses) => {
-                self.smmdb.set_courses(courses, &mut self.components);
+                self.smmdb.set_courses(courses);
                 Command::none()
             }
         }
     }
 
     fn view(&mut self) -> Element<Self::Message> {
-        if self.current_page.downcast_ref::<InitPage>().is_some() {
-            self.current_page
-                .view("Please select your save folder", &mut self.components)
-                .into()
-        } else if self.current_page.downcast_ref::<SavePage>().is_some() {
-            let save_data = self.save_data.as_ref().unwrap();
-            let title = save_data.get_location().to_str().unwrap();
-            self.current_page.view(title, &mut self.components).into()
-        } else {
-            // TODO find better way to exhaust this
-            panic!()
+        match &mut self.current_page {
+            Page::Init(init_page) => init_page.view().into(),
+            Page::Save(save_page) => save_page.view(self.smmdb.get_course_panels()),
         }
     }
 }

@@ -1,6 +1,6 @@
-use crate::{components::SmmdbCoursePanel, generate_page, styles::*, Component, Page};
+use crate::{components::SmmdbCoursePanel, styles::*, Component};
 
-use iced::{scrollable, Element, Scrollable};
+use iced::{scrollable, Element, Length, Scrollable};
 
 pub struct SmmdbWidget {
     state: scrollable::State,
@@ -15,7 +15,7 @@ impl SmmdbWidget {
 
     pub fn view<'a>(
         &'a mut self,
-        course_panels: Vec<&'a mut SmmdbCoursePanel>,
+        course_panels: &'a mut Vec<SmmdbCoursePanel>,
     ) -> Element<crate::Message> {
         let mut content = Scrollable::new(&mut self.state)
             .padding(CONTAINER_PADDING)
@@ -24,6 +24,6 @@ impl SmmdbWidget {
             content = content.push(panel.view());
         }
 
-        content.into()
+        content.width(Length::FillPortion(3)).into()
     }
 }

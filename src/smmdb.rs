@@ -1,4 +1,4 @@
-use crate::{components::SmmdbCoursePanel, Component};
+use crate::components::SmmdbCoursePanel;
 
 use anyhow::Result;
 use reqwest::Client;
@@ -9,37 +9,30 @@ use std::io::{self, ErrorKind};
 #[derive(Debug)]
 pub struct Smmdb {
     client: Client,
-    // courses: Vec<Course2Response>,
     query_params: QueryParams,
+    course_panels: Vec<SmmdbCoursePanel>,
 }
 
 impl Smmdb {
     pub fn new() -> Smmdb {
         Smmdb {
             client: Client::new(),
-            // courses: vec![],
-            query_params: QueryParams::default(),
+            query_params: serde_json::from_str::<QueryParams>("{}").unwrap(),
+            course_panels: vec![],
         }
     }
 
-    pub fn set_courses(
-        &mut self,
-        courses: Vec<Course2Response>,
-        components: &mut Vec<Box<dyn Component>>,
-    ) {
-        // self.courses = courses;
+    pub fn set_courses(&mut self, courses: Vec<Course2Response>) -> &Vec<SmmdbCoursePanel> {
+        self.course_panels = courses.into_iter().map(SmmdbCoursePanel::new).collect();
+        &self.course_panels
+    }
 
-        components
-            .into_iter()
-            .map(|component| component.downcast_mut::<SmmdbCoursePanel>())
-            .collect::<Vec<Option<&mut SmmdbCoursePanel>>>()
-            .retain(|c| c.is_none());
+    pub fn get_course_panels(&mut self) -> &mut Vec<SmmdbCoursePanel> {
+        &mut self.course_panels
+    }
 
-        courses
-            .into_iter()
-            .map(SmmdbCoursePanel::new)
-            .map(Box::new)
-            .for_each(|course_panel| components.push(course_panel));
+    pub fn get_query_params(&self) -> &QueryParams {
+        &self.query_params
     }
 
     pub async fn update(query_params: QueryParams) -> Result<Vec<Course2Response>> {
@@ -47,8 +40,7 @@ impl Smmdb {
             .map_err(|err| io::Error::new(ErrorKind::Other, err.to_string()))?;
         dbg!(&qs);
         let body = Client::new()
-            .get("https://api.smmdb.net/courses2")
-            // .query(&qs)
+            .get(&format!("https://api.smmdb.net/courses2?{}", qs))
             .send()
             .await?
             .text()
@@ -85,13 +77,18 @@ pub enum Difficulty {
     Expert,
     SuperExpert,
 }
-#[derive(Clone, Debug, Default, Serialize)]
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct QueryParams {
-    #[serde(default)]
+    #[serde(default = "limit_default")]
     limit: u32,
+    #[serde(default)]
     skip: Option<u32>,
+    #[serde(default)]
     id: Option<String>,
+    #[serde(default)]
     ids: Option<Vec<String>>,
+    #[serde(default)]
     title: Option<String>,
     #[serde(default)]
     title_exact: bool,
@@ -99,17 +96,25 @@ pub struct QueryParams {
     title_case_sensitive: bool,
     #[serde(default = "is_true")]
     title_trimmed: bool,
+    #[serde(default)]
     owner: Option<String>,
+    #[serde(default)]
     uploader: Option<String>,
+    #[serde(default)]
     sort: Option<Vec<Sort>>,
+    #[serde(default)]
     difficulty: Option<Difficulty>,
 }
 
-// fn is_true() -> bool {
-//     true
-// }
+fn limit_default() -> u32 {
+    50
+}
 
-#[derive(Clone, Debug, Serialize)]
+fn is_true() -> bool {
+    true
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
 struct Sort {
     pub val: SortValue,
     dir: i32,

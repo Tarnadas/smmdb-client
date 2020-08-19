@@ -2,12 +2,8 @@ use crate::{smmdb::Course2Response, Component, Message};
 
 use iced::{
     container::{Style, StyleSheet},
-    Align, Color, Column, Container, Image, Length, Row, Space, Text,
+    Align, Column, Container, Element, Image, Length, Row, Space, Text,
 };
-use iced_native::{widget::image::Handle, Element};
-use iced_wgpu::Renderer;
-use serde::{Deserialize, Serialize};
-use smmdb_lib::{proto::SMM2Course::SMM2Course, SavedCourse};
 
 #[derive(Clone, Debug)]
 pub struct SmmdbCoursePanel {
@@ -15,7 +11,7 @@ pub struct SmmdbCoursePanel {
 }
 
 impl Component for SmmdbCoursePanel {
-    fn view(&mut self) -> Element<Message, Renderer> {
+    fn view(&mut self) -> Element<Message> {
         let course = self.course.get_course();
         let course_header = course.get_header();
 
