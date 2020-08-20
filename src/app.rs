@@ -16,6 +16,7 @@ pub struct App {
 
 #[derive(Clone, Debug)]
 pub enum Message {
+    Empty,
     OpenSave(EmuSave),
     OpenCustomSave,
     LoadSave(smmdb_lib::Save, PathBuf),
@@ -23,6 +24,7 @@ pub enum Message {
     FetchCourses(QueryParams),
     FetchError(String),
     SetSmmdbCourses(Vec<Course2Response>),
+    SetSmmdbCourseThumbnail(Vec<u8>, String),
 }
 
 impl Application for App {
@@ -51,6 +53,7 @@ impl Application for App {
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
+            Message::Empty => Command::none(),
             Message::OpenSave(save) => {
                 Command::perform(smmdb_lib::Save::new(save.get_smm2_location()), move |res| {
                     match res {
@@ -113,6 +116,32 @@ impl Application for App {
             }
             Message::SetSmmdbCourses(courses) => {
                 self.smmdb.set_courses(courses);
+                let course_ids: Vec<String> =
+                    self.smmdb.get_course_panels().keys().cloned().collect();
+
+                let mut commands = Vec::<Command<Message>>::new();
+                for id in course_ids {
+                    commands.push(Command::perform(
+                        async move {
+                            futures::join!(
+                                Smmdb::fetch_thumbnail(id.clone()),
+                                futures::future::ok::<String, String>(id)
+                            )
+                        },
+                        |(thumbnail, id)| {
+                            if let (Ok(thumbnail), Ok(id)) = (thumbnail, id) {
+                                Message::SetSmmdbCourseThumbnail(thumbnail, id)
+                            } else {
+                                // TODO handle error
+                                Message::Empty
+                            }
+                        },
+                    ));
+                }
+                Command::batch(commands)
+            }
+            Message::SetSmmdbCourseThumbnail(thumbnail, id) => {
+                self.smmdb.set_course_panel_thumbnail(&id, thumbnail);
                 Command::none()
             }
         }

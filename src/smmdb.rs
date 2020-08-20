@@ -1,6 +1,7 @@
 use crate::components::SmmdbCoursePanel;
 
 use anyhow::Result;
+use indexmap::IndexMap;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use smmdb_lib::proto::SMM2Course::SMM2Course;
@@ -10,7 +11,7 @@ use std::io::{self, ErrorKind};
 pub struct Smmdb {
     client: Client,
     query_params: QueryParams,
-    course_panels: Vec<SmmdbCoursePanel>,
+    course_panels: IndexMap<String, SmmdbCoursePanel>,
 }
 
 impl Smmdb {
@@ -18,16 +19,28 @@ impl Smmdb {
         Smmdb {
             client: Client::new(),
             query_params: serde_json::from_str::<QueryParams>("{}").unwrap(),
-            course_panels: vec![],
+            course_panels: IndexMap::new(),
         }
     }
 
-    pub fn set_courses(&mut self, courses: Vec<Course2Response>) -> &Vec<SmmdbCoursePanel> {
-        self.course_panels = courses.into_iter().map(SmmdbCoursePanel::new).collect();
-        &self.course_panels
+    pub fn set_courses(&mut self, courses: Vec<Course2Response>) {
+        self.course_panels.clear();
+        courses
+            .into_iter()
+            .map(SmmdbCoursePanel::new)
+            .for_each(|course| {
+                self.course_panels.insert(course.get_id().clone(), course);
+            });
     }
 
-    pub fn get_course_panels(&mut self) -> &mut Vec<SmmdbCoursePanel> {
+    pub fn set_course_panel_thumbnail(&mut self, id: &String, thumbnail: Vec<u8>) {
+        self.course_panels
+            .get_mut(id)
+            .unwrap()
+            .set_thumbnail(thumbnail);
+    }
+
+    pub fn get_course_panels(&mut self) -> &mut IndexMap<String, SmmdbCoursePanel> {
         &mut self.course_panels
     }
 
@@ -48,6 +61,19 @@ impl Smmdb {
         let response: Vec<Course2Response> = serde_json::from_str(&body)?;
         Ok(response)
     }
+
+    pub async fn fetch_thumbnail(id: String) -> Result<Vec<u8>> {
+        let bytes = Client::new()
+            .get(&format!(
+                "https://api.smmdb.net/courses2/thumbnail/{}?size=m",
+                id
+            ))
+            .send()
+            .await?
+            .bytes()
+            .await?;
+        Ok(bytes.into_iter().collect())
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -64,6 +90,10 @@ pub struct Course2Response {
 }
 
 impl Course2Response {
+    pub fn get_id(&self) -> &String {
+        &self.id
+    }
+
     pub fn get_course(&self) -> &SMM2Course {
         &self.course
     }
@@ -107,7 +137,7 @@ pub struct QueryParams {
 }
 
 fn limit_default() -> u32 {
-    50
+    25
 }
 
 fn is_true() -> bool {

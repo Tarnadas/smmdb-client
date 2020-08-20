@@ -1,9 +1,10 @@
 use crate::{
-    components::{CoursePanel, SmmdbCoursePanel},
+    components::SmmdbCoursePanel,
     widgets::{SaveWidget, SmmdbWidget},
 };
 
 use iced::{Element, Row};
+use indexmap::IndexMap;
 use std::path::PathBuf;
 
 pub struct SavePage {
@@ -25,7 +26,7 @@ impl SavePage {
 
     pub fn view<'a>(
         &'a mut self,
-        smmdb_course_panels: &'a mut Vec<SmmdbCoursePanel>,
+        smmdb_course_panels: &'a mut IndexMap<String, SmmdbCoursePanel>,
     ) -> Element<crate::Message> {
         Row::new()
             .push(self.save_widget.view())

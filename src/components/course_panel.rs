@@ -23,19 +23,26 @@ impl Component for CoursePanel {
             .push(Space::with_height(Length::Units(10)))
             .push(
                 Row::new()
-                    .push(Image::new(Handle::from_memory(
-                        course.get_course_thumb().unwrap().clone().take_jpeg(),
-                    )))
+                    .push(
+                        Container::new(Image::new(Handle::from_memory(
+                            course.get_course_thumb().unwrap().clone().take_jpeg(),
+                        )))
+                        .max_width(320),
+                    )
                     .push(Space::with_width(Length::Units(10)))
-                    .push(Text::new(format!("{}", course_header.get_description())).size(15))
+                    .push(
+                        Text::new(format!("{}", course_header.get_description()))
+                            .size(15)
+                            .width(Length::Fill),
+                    )
                     .align_items(Align::Center),
-            );
+            )
+            .width(Length::Shrink);
 
         Container::new(content)
             .style(CoursePanelStyle)
             .padding(12)
             .width(Length::Units(480))
-            .height(Length::Units(170))
             .into()
     }
 }
