@@ -12,7 +12,7 @@ impl SaveWidget {
         let course_panels = save
             .get_own_courses()
             .iter()
-            .filter_map(|course| course.as_ref())
+            // .filter_map(|course| course.as_ref())
             .map(|course| CoursePanel::new(course.clone()))
             .collect();
         SaveWidget {

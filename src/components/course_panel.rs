@@ -2,42 +2,51 @@ use crate::{Component, Message};
 
 use iced::{
     container::{Style, StyleSheet},
-    Align, Color, Column, Container, Image, Length, Row, Space, Text,
+    Align, Color, Column, Container, Element, Image, Length, Row, Space, Text,
 };
-use iced_native::{widget::image::Handle, Element};
-use iced_wgpu::Renderer;
+use iced_native::widget::image::Handle;
 use smmdb_lib::SavedCourse;
 
 #[derive(Clone, Debug)]
 pub struct CoursePanel {
-    course: SavedCourse,
+    course: Option<SavedCourse>,
 }
 
 impl Component for CoursePanel {
-    fn view(&mut self) -> Element<Message, Renderer> {
-        let course = self.course.get_course();
-        let course_header = course.get_course().get_header();
+    fn view(&mut self) -> Element<Message> {
+        let content: Element<Message> = if let Some(course) = &self.course {
+            let course = course.get_course();
+            let course_header = course.get_course().get_header();
 
-        let content = Column::new()
-            .push(Text::new(format!("{}", course_header.get_title())).size(24))
-            .push(Space::with_height(Length::Units(10)))
-            .push(
-                Row::new()
-                    .push(
-                        Container::new(Image::new(Handle::from_memory(
-                            course.get_course_thumb().unwrap().clone().take_jpeg(),
-                        )))
-                        .max_width(320),
-                    )
-                    .push(Space::with_width(Length::Units(10)))
-                    .push(
-                        Text::new(format!("{}", course_header.get_description()))
-                            .size(15)
-                            .width(Length::Fill),
-                    )
-                    .align_items(Align::Center),
-            )
-            .width(Length::Shrink);
+            Column::new()
+                .push(Text::new(format!("{}", course_header.get_title())).size(24))
+                .push(Space::with_height(Length::Units(10)))
+                .push(
+                    Row::new()
+                        .push(
+                            Container::new(Image::new(Handle::from_memory(
+                                course.get_course_thumb().unwrap().clone().take_jpeg(),
+                            )))
+                            .max_width(320),
+                        )
+                        .push(Space::with_width(Length::Units(10)))
+                        .push(
+                            Text::new(format!("{}", course_header.get_description()))
+                                .size(15)
+                                .width(Length::Fill),
+                        )
+                        .align_items(Align::Center),
+                )
+                .width(Length::Shrink)
+                .into()
+        } else {
+            Container::new(Text::new("empty").size(18).width(Length::Shrink))
+                .width(Length::Fill)
+                .height(Length::Units(80))
+                .center_x()
+                .center_y()
+                .into()
+        };
 
         Container::new(content)
             .style(CoursePanelStyle)
@@ -48,7 +57,7 @@ impl Component for CoursePanel {
 }
 
 impl CoursePanel {
-    pub fn new(course: SavedCourse) -> CoursePanel {
+    pub fn new(course: Option<SavedCourse>) -> CoursePanel {
         CoursePanel { course }
     }
 }
