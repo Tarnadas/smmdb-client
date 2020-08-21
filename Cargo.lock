@@ -2962,6 +2962,7 @@ dependencies = [
  "iced",
  "iced_native",
  "iced_wgpu",
+ "image",
  "indexmap",
  "nfd",
  "reqwest",

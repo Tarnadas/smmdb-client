@@ -12,9 +12,35 @@ pub use emu::{EmuSave, EmuType};
 pub use pages::Page;
 pub use smmdb::Smmdb;
 
-fn main() {
-    use app::*;
-    use iced::{Application, Settings};
+use anyhow::Result;
 
-    App::run(Settings::default());
+fn main() -> Result<()> {
+    use app::*;
+    use iced::{window, Application, Settings};
+
+    let icon = match image::load_from_memory(include_bytes!("../icon.png")) {
+        Ok(buffer) => {
+            let buffer = buffer.to_rgba();
+            let width = buffer.width();
+            let height = buffer.height();
+            let dynamic_image = image::DynamicImage::ImageRgba8(buffer);
+            match iced::window::icon::Icon::from_rgba(dynamic_image.to_bytes(), width, height) {
+                Ok(icon) => Some(icon),
+                Err(_) => None,
+            }
+        }
+        Err(_) => None,
+    };
+    let window = window::Settings {
+        min_size: Some((560, 400)),
+        icon,
+        ..window::Settings::default()
+    };
+    let settings = Settings {
+        window,
+        ..Settings::default()
+    };
+
+    App::run(settings);
+    Ok(())
 }
