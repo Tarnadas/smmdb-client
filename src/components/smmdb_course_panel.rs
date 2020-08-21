@@ -19,11 +19,11 @@ impl Component for SmmdbCoursePanel {
 
         let thumbnail: Element<Message> = if let Some(thumbnail) = &self.thumbnail {
             Image::new(Handle::from_memory(thumbnail.clone()))
-                .width(Length::Units(320))
-                .height(Length::Units(180))
+                .width(Length::Units(240))
+                .height(Length::Units(135))
                 .into()
         } else {
-            Space::new(Length::Units(320), Length::Units(180)).into()
+            Space::new(Length::Units(240), Length::Units(135)).into()
         };
 
         let content = Column::new()

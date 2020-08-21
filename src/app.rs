@@ -12,11 +12,13 @@ use std::path::PathBuf;
 pub struct App {
     current_page: Page,
     smmdb: Smmdb,
+    window_size: WindowSize,
 }
 
 #[derive(Clone, Debug)]
 pub enum Message {
     Empty,
+    SetWindowSize(WindowSize),
     OpenSave(EmuSave),
     OpenCustomSave,
     LoadSave(smmdb_lib::Save, PathBuf),
@@ -25,6 +27,12 @@ pub enum Message {
     FetchError(String),
     SetSmmdbCourses(Vec<Course2Response>),
     SetSmmdbCourseThumbnail(Vec<u8>, String),
+}
+
+#[derive(Clone, Debug)]
+pub enum WindowSize {
+    S,
+    M,
 }
 
 impl Application for App {
@@ -40,6 +48,7 @@ impl Application for App {
             App {
                 current_page: Page::Init(InitPage::new(components)),
                 smmdb,
+                window_size: WindowSize::M,
             },
             Command::perform(async {}, move |_| {
                 Message::FetchCourses(query_params.clone())
@@ -54,6 +63,11 @@ impl Application for App {
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
             Message::Empty => Command::none(),
+            Message::SetWindowSize(window_size) => {
+                // TODO listen to application resize somehow
+                self.window_size = window_size;
+                Command::none()
+            }
             Message::OpenSave(save) => {
                 Command::perform(smmdb_lib::Save::new(save.get_smm2_location()), move |res| {
                     match res {

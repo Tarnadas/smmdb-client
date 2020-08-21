@@ -29,6 +29,6 @@ impl SaveWidget {
             content = content.push(panel.view());
         }
 
-        content.width(Length::FillPortion(2)).into()
+        content.width(Length::FillPortion(1)).into()
     }
 }

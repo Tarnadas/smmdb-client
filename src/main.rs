@@ -32,7 +32,7 @@ fn main() -> Result<()> {
         Err(_) => None,
     };
     let window = window::Settings {
-        min_size: Some((560, 400)),
+        min_size: Some((960, 500)),
         icon,
         ..window::Settings::default()
     };

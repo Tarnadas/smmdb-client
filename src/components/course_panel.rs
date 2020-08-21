@@ -27,7 +27,7 @@ impl Component for CoursePanel {
                             Container::new(Image::new(Handle::from_memory(
                                 course.get_course_thumb().unwrap().clone().take_jpeg(),
                             )))
-                            .max_width(320),
+                            .max_width(240),
                         )
                         .push(Space::with_width(Length::Units(10)))
                         .push(

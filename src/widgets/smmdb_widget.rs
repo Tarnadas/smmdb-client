@@ -25,6 +25,6 @@ impl SmmdbWidget {
             content = content.push(panel.view());
         }
 
-        content.width(Length::FillPortion(3)).into()
+        content.width(Length::FillPortion(1)).into()
     }
 }
