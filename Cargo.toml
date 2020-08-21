@@ -9,9 +9,9 @@ anyhow = "1"
 dirs = "3.0"
 env_logger = "0.7"
 futures = "0.3"
-iced = { git = "https://github.com/hecrj/iced.git", commit = "4030326", features = [ "image", "tokio" ] }
-iced_native = { git = "https://github.com/hecrj/iced.git", commit = "4030326" }
-iced_wgpu = { git = "https://github.com/hecrj/iced.git", commit = "4030326" }
+iced = { git = "https://github.com/hecrj/iced.git", commit = "bbc6e91", features = [ "image", "tokio" ] }
+iced_native = { git = "https://github.com/hecrj/iced.git", commit = "bbc6e91" }
+iced_wgpu = { git = "https://github.com/hecrj/iced.git", commit = "bbc6e91" }
 indexmap = "1.5"
 nfd = "0.0"
 reqwest = "0.10"
