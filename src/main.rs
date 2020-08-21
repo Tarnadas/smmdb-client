@@ -1,7 +1,11 @@
+#[macro_use]
+extern crate lazy_static;
+
 mod app;
 mod components;
 mod emu;
 mod font;
+mod icon;
 mod pages;
 mod smmdb;
 mod styles;

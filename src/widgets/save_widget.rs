@@ -1,6 +1,6 @@
 use crate::{components::CoursePanel, font, styles::*, Component};
 
-use iced::{scrollable, Element, Font, Length, Scrollable, Text};
+use iced::{scrollable, Element, Length, Scrollable, Text};
 use std::path::PathBuf;
 
 pub struct SaveWidget {
@@ -26,8 +26,8 @@ impl SaveWidget {
             .padding(CONTAINER_PADDING)
             .spacing(LIST_SPACING)
             .push(Text::new(format!("{:?}", path)).font(font::SMME));
-        for panel in self.course_panels.iter_mut() {
-            content = content.push(panel.view());
+        for (index, panel) in self.course_panels.iter_mut().enumerate() {
+            content = content.push(panel.view(index));
         }
 
         content.width(Length::FillPortion(1)).into()

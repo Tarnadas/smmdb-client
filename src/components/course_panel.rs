@@ -1,19 +1,29 @@
-use crate::{Component, Message};
+use crate::{icon, Message};
 
 use iced::{
+    button,
     container::{Style, StyleSheet},
-    Align, Color, Column, Container, Element, Image, Length, Row, Space, Text,
+    image, Align, Button, Color, Column, Container, Element, Image, Length, Row, Space, Text,
 };
-use iced_native::widget::image::Handle;
 use smmdb_lib::SavedCourse;
 
 #[derive(Clone, Debug)]
 pub struct CoursePanel {
+    add_state: button::State,
+    delete_state: button::State,
     course: Option<SavedCourse>,
 }
 
-impl Component for CoursePanel {
-    fn view(&mut self) -> Element<Message> {
+impl CoursePanel {
+    pub fn new(course: Option<SavedCourse>) -> CoursePanel {
+        CoursePanel {
+            add_state: button::State::new(),
+            delete_state: button::State::new(),
+            course,
+        }
+    }
+
+    pub fn view(&mut self, index: usize) -> Element<Message> {
         let content: Element<Message> = if let Some(course) = &self.course {
             let course = course.get_course();
             let course_header = course.get_course().get_header();
@@ -24,7 +34,7 @@ impl Component for CoursePanel {
                 .push(
                     Row::new()
                         .push(
-                            Container::new(Image::new(Handle::from_memory(
+                            Container::new(Image::new(image::Handle::from_memory(
                                 course.get_course_thumb().unwrap().clone().take_jpeg(),
                             )))
                             .max_width(240),
@@ -48,17 +58,45 @@ impl Component for CoursePanel {
                 .into()
         };
 
-        Container::new(content)
+        let panel = Container::new(content)
             .style(CoursePanelStyle)
             .padding(12)
-            .width(Length::Units(480))
-            .into()
-    }
-}
+            .width(Length::Fill);
 
-impl CoursePanel {
-    pub fn new(course: Option<SavedCourse>) -> CoursePanel {
-        CoursePanel { course }
+        let mut actions = Column::new();
+        if self.course.is_some() {
+            actions = actions
+                .push(Button::new(
+                    &mut self.add_state,
+                    icon::SORT
+                        .clone()
+                        .width(Length::Units(24))
+                        .height(Length::Units(24)),
+                ))
+                .push(Space::with_height(Length::Units(10)))
+                .push(Button::new(
+                    &mut self.delete_state,
+                    icon::DELETE
+                        .clone()
+                        .width(Length::Units(24))
+                        .height(Length::Units(24)),
+                ));
+        } else {
+            actions = actions.push(Button::new(
+                &mut self.add_state,
+                icon::ADD
+                    .clone()
+                    .width(Length::Units(24))
+                    .height(Length::Units(24)),
+            ));
+        }
+
+        Row::new()
+            .align_items(Align::Center)
+            .push(panel)
+            .push(Space::with_width(Length::Units(10)))
+            .push(actions)
+            .into()
     }
 }
 

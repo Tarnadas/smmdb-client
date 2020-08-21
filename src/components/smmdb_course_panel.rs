@@ -40,7 +40,7 @@ impl Component for SmmdbCoursePanel {
         Container::new(content)
             .style(SmmdbCoursePanelStyle)
             .padding(12)
-            .width(Length::Units(480))
+            .width(Length::Fill)
             .into()
     }
 }
