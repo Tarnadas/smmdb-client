@@ -18,7 +18,7 @@ fn main() -> Result<()> {
     use app::*;
     use iced::{window, Application, Settings};
 
-    let icon = match image::load_from_memory(include_bytes!("../icon.png")) {
+    let icon = match image::load_from_memory(include_bytes!("../assets/icons/icon.png")) {
         Ok(buffer) => {
             let buffer = buffer.to_rgba();
             let width = buffer.width();
@@ -38,6 +38,7 @@ fn main() -> Result<()> {
     };
     let settings = Settings {
         window,
+        default_font: Some(include_bytes!("../assets/fonts/helvetica.ttf")),
         ..Settings::default()
     };
 
