@@ -1,6 +1,7 @@
-use crate::{components::CoursePanel, styles::*, Component};
+use crate::{components::CoursePanel, font, styles::*, Component};
 
-use iced::{scrollable, Element, Length, Scrollable};
+use iced::{scrollable, Element, Font, Length, Scrollable, Text};
+use std::path::PathBuf;
 
 pub struct SaveWidget {
     state: scrollable::State,
@@ -12,7 +13,6 @@ impl SaveWidget {
         let course_panels = save
             .get_own_courses()
             .iter()
-            // .filter_map(|course| course.as_ref())
             .map(|course| CoursePanel::new(course.clone()))
             .collect();
         SaveWidget {
@@ -21,10 +21,11 @@ impl SaveWidget {
         }
     }
 
-    pub fn view<'a>(&'a mut self) -> Element<crate::Message> {
+    pub fn view<'a>(&'a mut self, path: &PathBuf) -> Element<crate::Message> {
         let mut content = Scrollable::new(&mut self.state)
             .padding(CONTAINER_PADDING)
-            .spacing(LIST_SPACING);
+            .spacing(LIST_SPACING)
+            .push(Text::new(format!("{:?}", path)).font(font::SMME));
         for panel in self.course_panels.iter_mut() {
             content = content.push(panel.view());
         }

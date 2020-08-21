@@ -1,6 +1,7 @@
 mod app;
 mod components;
 mod emu;
+mod font;
 mod pages;
 mod smmdb;
 mod styles;
@@ -38,7 +39,7 @@ fn main() -> Result<()> {
     };
     let settings = Settings {
         window,
-        default_font: Some(include_bytes!("../assets/fonts/helvetica.ttf")),
+        default_font: Some(font::DEFAULT_FONT_BYTES),
         ..Settings::default()
     };
 

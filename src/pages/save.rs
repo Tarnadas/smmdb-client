@@ -29,7 +29,7 @@ impl SavePage {
         smmdb_course_panels: &'a mut IndexMap<String, SmmdbCoursePanel>,
     ) -> Element<crate::Message> {
         Row::new()
-            .push(self.save_widget.view())
+            .push(self.save_widget.view(&self.location))
             .push(self.smmdb_widget.view(smmdb_course_panels))
             .into()
     }

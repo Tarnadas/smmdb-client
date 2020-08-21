@@ -1,6 +1,6 @@
-use crate::{components::SmmdbCoursePanel, styles::*, Component};
+use crate::{components::SmmdbCoursePanel, font, styles::*, Component};
 
-use iced::{scrollable, Element, Length, Scrollable};
+use iced::{scrollable, Element, Length, Scrollable, Text};
 use indexmap::IndexMap;
 
 pub struct SmmdbWidget {
@@ -20,7 +20,8 @@ impl SmmdbWidget {
     ) -> Element<crate::Message> {
         let mut content = Scrollable::new(&mut self.state)
             .padding(CONTAINER_PADDING)
-            .spacing(LIST_SPACING);
+            .spacing(LIST_SPACING)
+            .push(Text::new("SMMDB").font(font::SMME));
         for panel in course_panels.values_mut() {
             content = content.push(panel.view());
         }
