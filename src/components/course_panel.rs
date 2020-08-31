@@ -1,14 +1,14 @@
-use crate::{icon, Message};
+use crate::{icon, styles::*, AppState, Message};
 
 use iced::{
-    button,
-    container::{Style, StyleSheet},
-    image, Align, Button, Color, Column, Container, Element, Image, Length, Row, Space, Text,
+    button, image, Align, Button, Color, Column, Container, Element, Image, Length, Row, Space,
+    Text,
 };
 use smmdb_lib::SavedCourse;
 
 #[derive(Clone, Debug)]
 pub struct CoursePanel {
+    panel_state: button::State,
     add_state: button::State,
     delete_state: button::State,
     course: Option<SavedCourse>,
@@ -17,13 +17,14 @@ pub struct CoursePanel {
 impl CoursePanel {
     pub fn new(course: Option<SavedCourse>) -> CoursePanel {
         CoursePanel {
+            panel_state: button::State::new(),
             add_state: button::State::new(),
             delete_state: button::State::new(),
             course,
         }
     }
 
-    pub fn view(&mut self, index: usize) -> Element<Message> {
+    pub fn view(&mut self, state: &AppState, index: usize) -> Element<Message> {
         let content: Element<Message> = if let Some(course) = &self.course {
             let course = course.get_course();
             let course_header = course.get_course().get_header();
@@ -58,21 +59,32 @@ impl CoursePanel {
                 .into()
         };
 
-        let panel = Container::new(content)
-            .style(CoursePanelStyle)
+        let panel = Button::new(&mut self.panel_state, content)
+            .style(CoursePanelStyle(state.clone(), index))
             .padding(12)
-            .width(Length::Fill);
+            .width(Length::Fill)
+            .on_press(match state {
+                AppState::SwapSelect(idx) => Message::SwapCourse(*idx, index),
+                _ => Message::Empty,
+            });
 
         let mut actions = Column::new();
         if self.course.is_some() {
             actions = actions
-                .push(Button::new(
-                    &mut self.add_state,
-                    icon::SORT
-                        .clone()
-                        .width(Length::Units(24))
-                        .height(Length::Units(24)),
-                ))
+                .push(
+                    Button::new(
+                        &mut self.add_state,
+                        icon::SORT
+                            .clone()
+                            .width(Length::Units(24))
+                            .height(Length::Units(24)),
+                    )
+                    .on_press(match state {
+                        AppState::SwapSelect(_) => Message::CancelSwap,
+                        _ => Message::InitSwapCourse(index),
+                    })
+                    .style(SwapButtonStyle(state.clone(), index)),
+                )
                 .push(Space::with_height(Length::Units(10)))
                 .push(Button::new(
                     &mut self.delete_state,
@@ -100,15 +112,47 @@ impl CoursePanel {
     }
 }
 
-struct CoursePanelStyle;
+struct CoursePanelStyle(AppState, usize);
 
-impl StyleSheet for CoursePanelStyle {
-    fn style(&self) -> Style {
-        Style {
+impl button::StyleSheet for CoursePanelStyle {
+    fn active(&self) -> button::Style {
+        button::Style {
+            text_color: Color::BLACK,
+            background: match self.0 {
+                AppState::Default => None,
+                AppState::SwapSelect(index) => {
+                    if self.1 != index {
+                        Some(BACKGROUND_SELECT)
+                    } else {
+                        None
+                    }
+                }
+            },
             border_color: Color::BLACK,
             border_radius: 4,
             border_width: 1,
-            ..Style::default()
+            ..button::Style::default()
+        }
+    }
+}
+
+struct SwapButtonStyle(AppState, usize);
+
+impl button::StyleSheet for SwapButtonStyle {
+    fn active(&self) -> button::Style {
+        button::Style {
+            background: match self.0 {
+                AppState::Default => None,
+                AppState::SwapSelect(index) => {
+                    if self.1 == index {
+                        Some(BACKGROUND_SELECT)
+                    } else {
+                        None
+                    }
+                }
+            },
+            border_radius: 4,
+            ..button::Style::default()
         }
     }
 }

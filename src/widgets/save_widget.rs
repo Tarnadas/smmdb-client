@@ -1,4 +1,4 @@
-use crate::{components::CoursePanel, font, styles::*, Component};
+use crate::{components::CoursePanel, font, styles::*, AppState};
 
 use iced::{scrollable, Element, Length, Scrollable, Text};
 use std::path::PathBuf;
@@ -21,13 +21,13 @@ impl SaveWidget {
         }
     }
 
-    pub fn view<'a>(&'a mut self, path: &PathBuf) -> Element<crate::Message> {
+    pub fn view<'a>(&'a mut self, state: &AppState, path: &PathBuf) -> Element<crate::Message> {
         let mut content = Scrollable::new(&mut self.state)
             .padding(CONTAINER_PADDING)
             .spacing(LIST_SPACING)
             .push(Text::new(format!("{:?}", path)).font(font::SMME));
         for (index, panel) in self.course_panels.iter_mut().enumerate() {
-            content = content.push(panel.view(index));
+            content = content.push(panel.view(state, index));
         }
 
         content.width(Length::FillPortion(1)).into()

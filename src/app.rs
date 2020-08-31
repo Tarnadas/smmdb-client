@@ -10,9 +10,16 @@ use nfd::Response;
 use std::path::PathBuf;
 
 pub struct App {
+    state: AppState,
     current_page: Page,
     smmdb: Smmdb,
     window_size: WindowSize,
+}
+
+#[derive(Clone, Debug)]
+pub enum AppState {
+    Default,
+    SwapSelect(usize),
 }
 
 #[derive(Clone, Debug)]
@@ -27,6 +34,9 @@ pub enum Message {
     FetchError(String),
     SetSmmdbCourses(Vec<Course2Response>),
     SetSmmdbCourseThumbnail(Vec<u8>, String),
+    InitSwapCourse(usize),
+    CancelSwap,
+    SwapCourse(usize, usize),
 }
 
 #[derive(Clone, Debug)]
@@ -46,6 +56,7 @@ impl Application for App {
         let query_params = smmdb.get_query_params().clone();
         (
             App {
+                state: AppState::Default,
                 current_page: Page::Init(InitPage::new(components)),
                 smmdb,
                 window_size: WindowSize::M,
@@ -108,7 +119,6 @@ impl Application for App {
                 }),
             },
             Message::LoadSave(smmdb_save, location) => {
-                // self.save_data = Some(SaveData::new(smmdb_save, location));
                 self.current_page = Page::Save(SavePage::new(smmdb_save, location));
                 Command::none()
             }
@@ -158,13 +168,34 @@ impl Application for App {
                 self.smmdb.set_course_panel_thumbnail(&id, thumbnail);
                 Command::none()
             }
+            Message::InitSwapCourse(index) => {
+                self.state = AppState::SwapSelect(index);
+                Command::none()
+            }
+            Message::CancelSwap => {
+                self.state = AppState::Default;
+                Command::none()
+            }
+            Message::SwapCourse(first, second) => {
+                self.state = AppState::Default;
+
+                match self.current_page {
+                    Page::Save(ref mut save_page) => {
+                        let fut = save_page.swap_courses(first as u8, second as u8);
+                        futures::executor::block_on(fut).unwrap();
+                        // TODO find better way than block_on
+                        Command::none()
+                    }
+                    _ => Command::none(),
+                }
+            }
         }
     }
 
     fn view(&mut self) -> Element<Self::Message> {
         match &mut self.current_page {
             Page::Init(init_page) => init_page.view().into(),
-            Page::Save(save_page) => save_page.view(self.smmdb.get_course_panels()),
+            Page::Save(save_page) => save_page.view(&self.state, self.smmdb.get_course_panels()),
         }
     }
 }

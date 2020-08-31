@@ -3143,7 +3143,6 @@ dependencies = [
  "chrono",
  "cmac",
  "crc",
- "generic-array",
  "image",
  "infer",
  "itertools",
