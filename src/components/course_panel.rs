@@ -70,45 +70,51 @@ impl CoursePanel {
 
         let mut actions = Column::new();
         if self.course.is_some() {
-            actions = actions
-                .push(
-                    Button::new(
-                        &mut self.add_state,
-                        icon::SORT
-                            .clone()
-                            .width(Length::Units(24))
-                            .height(Length::Units(24)),
-                    )
-                    .on_press(match state {
-                        AppState::SwapSelect(_) => Message::ResetState,
-                        AppState::Default => Message::InitSwapCourse(index),
-                        AppState::DownloadSelect(_) => Message::Empty,
-                    })
-                    .style(SwapButtonStyle(state.clone(), index)),
-                )
-                .push(Space::with_height(Length::Units(10)))
-                .push(Button::new(
-                    &mut self.delete_state,
-                    icon::DELETE
-                        .clone()
-                        .width(Length::Units(24))
-                        .height(Length::Units(24)),
-                ));
-        } else {
-            actions = actions.push(
-                Button::new(
-                    &mut self.add_state,
-                    icon::ADD
-                        .clone()
-                        .width(Length::Units(24))
-                        .height(Length::Units(24)),
-                )
-                .on_press(match state {
-                    AppState::DownloadSelect(_) => Message::ResetState,
-                    AppState::Default => Message::InitDownloadCourse(index),
-                    AppState::SwapSelect(_) => Message::Empty,
-                }),
+            let mut swap_button = Button::new(
+                &mut self.add_state,
+                icon::SORT
+                    .clone()
+                    .width(Length::Units(24))
+                    .height(Length::Units(24)),
+            )
+            .style(SwapButtonStyle(state.clone(), index));
+            swap_button = match state {
+                AppState::SwapSelect(_) => swap_button.on_press(Message::ResetState),
+                AppState::Default | AppState::DownloadSelect(_) => {
+                    swap_button.on_press(Message::InitSwapCourse(index))
+                }
+                AppState::Loading => swap_button,
+            };
+
+            let delete_button = Button::new(
+                &mut self.delete_state,
+                icon::DELETE
+                    .clone()
+                    .width(Length::Units(24))
+                    .height(Length::Units(24)),
             );
+
+            actions = actions
+                .push(swap_button)
+                .push(Space::with_height(Length::Units(10)))
+                .push(delete_button);
+        } else {
+            let mut download_button = Button::new(
+                &mut self.add_state,
+                icon::ADD
+                    .clone()
+                    .width(Length::Units(24))
+                    .height(Length::Units(24)),
+            );
+            download_button = match state {
+                AppState::DownloadSelect(_) => download_button.on_press(Message::ResetState),
+                AppState::Default | AppState::SwapSelect(_) => {
+                    download_button.on_press(Message::InitDownloadCourse(index))
+                }
+                AppState::Loading => download_button,
+            };
+
+            actions = actions.push(download_button);
         }
 
         Row::new()

@@ -19,6 +19,7 @@ pub struct App {
 #[derive(Clone, Debug)]
 pub enum AppState {
     Default,
+    Loading,
     SwapSelect(usize),
     DownloadSelect(usize),
 }
@@ -177,7 +178,7 @@ impl Application for App {
                 Command::none()
             }
             Message::SwapCourse(first, second) => {
-                self.state = AppState::Default;
+                self.state = AppState::Loading;
 
                 match self.current_page {
                     Page::Save(ref mut save_page) => {
@@ -193,21 +194,25 @@ impl Application for App {
                 self.state = AppState::DownloadSelect(index);
                 Command::none()
             }
-            Message::DownloadCourse(index, id) => Command::perform(
-                async move {
-                    futures::join!(
-                        Smmdb::download_course(id),
-                        futures::future::ok::<usize, usize>(index)
-                    )
-                },
-                |(data, index)| {
-                    if let (Ok(data), Ok(index)) = (data, index) {
-                        Message::SetCourse(index, data)
-                    } else {
-                        todo!()
-                    }
-                },
-            ),
+            Message::DownloadCourse(index, id) => {
+                self.state = AppState::Loading;
+
+                Command::perform(
+                    async move {
+                        futures::join!(
+                            Smmdb::download_course(id),
+                            futures::future::ok::<usize, usize>(index)
+                        )
+                    },
+                    |(data, index)| {
+                        if let (Ok(data), Ok(index)) = (data, index) {
+                            Message::SetCourse(index, data)
+                        } else {
+                            todo!()
+                        }
+                    },
+                )
+            }
             Message::SetCourse(index, data) => {
                 match self.current_page {
                     Page::Save(ref mut save_page) => {
