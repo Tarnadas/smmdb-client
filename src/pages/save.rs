@@ -42,7 +42,9 @@ impl SavePage {
         self.save
             .save()
             .await
-            .map_err(|err| -> anyhow::Error { err.into() })
+            .map_err(|err| -> anyhow::Error { err.into() })?;
+        self.generate_course_panels();
+        Ok(())
     }
 
     pub async fn add_course(&mut self, index: u8, course: smmdb_lib::Course2) -> Result<()> {
@@ -50,6 +52,12 @@ impl SavePage {
         self.save
             .save()
             .await
-            .map_err(|err| -> anyhow::Error { err.into() })
+            .map_err(|err| -> anyhow::Error { err.into() })?;
+        self.generate_course_panels();
+        Ok(())
+    }
+
+    fn generate_course_panels(&mut self) {
+        self.save_widget.generate_course_panels(&self.save);
     }
 }

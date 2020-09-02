@@ -32,4 +32,12 @@ impl SaveWidget {
 
         content.width(Length::FillPortion(1)).into()
     }
+
+    pub fn generate_course_panels(&mut self, save: &smmdb_lib::Save) {
+        self.course_panels = save
+            .get_own_courses()
+            .iter()
+            .map(|course| CoursePanel::new(course.clone()))
+            .collect();
+    }
 }
