@@ -7,7 +7,7 @@ use crate::{
 
 use iced::{executor, Application, Command, Element};
 use nfd::Response;
-use std::path::PathBuf;
+use std::{convert::TryInto, path::PathBuf};
 
 pub struct App {
     state: AppState,
@@ -20,6 +20,7 @@ pub struct App {
 pub enum AppState {
     Default,
     SwapSelect(usize),
+    DownloadSelect(usize),
 }
 
 #[derive(Clone, Debug)]
@@ -35,8 +36,11 @@ pub enum Message {
     SetSmmdbCourses(Vec<Course2Response>),
     SetSmmdbCourseThumbnail(Vec<u8>, String),
     InitSwapCourse(usize),
-    CancelSwap,
     SwapCourse(usize, usize),
+    InitDownloadCourse(usize),
+    DownloadCourse(usize, String),
+    SetCourse(usize, Vec<u8>),
+    ResetState,
 }
 
 #[derive(Clone, Debug)]
@@ -172,10 +176,6 @@ impl Application for App {
                 self.state = AppState::SwapSelect(index);
                 Command::none()
             }
-            Message::CancelSwap => {
-                self.state = AppState::Default;
-                Command::none()
-            }
             Message::SwapCourse(first, second) => {
                 self.state = AppState::Default;
 
@@ -184,10 +184,45 @@ impl Application for App {
                         let fut = save_page.swap_courses(first as u8, second as u8);
                         futures::executor::block_on(fut).unwrap();
                         // TODO find better way than block_on
-                        Command::none()
+                        Command::perform(async {}, |_| Message::ResetState)
                     }
                     _ => Command::none(),
                 }
+            }
+            Message::InitDownloadCourse(index) => {
+                self.state = AppState::DownloadSelect(index);
+                Command::none()
+            }
+            Message::DownloadCourse(index, id) => Command::perform(
+                async move {
+                    futures::join!(
+                        Smmdb::download_course(id),
+                        futures::future::ok::<usize, usize>(index)
+                    )
+                },
+                |(data, index)| {
+                    if let (Ok(data), Ok(index)) = (data, index) {
+                        Message::SetCourse(index, data)
+                    } else {
+                        todo!()
+                    }
+                },
+            ),
+            Message::SetCourse(index, data) => {
+                match self.current_page {
+                    Page::Save(ref mut save_page) => {
+                        let course: smmdb_lib::Course2 = data.try_into().unwrap();
+                        let fut = save_page.add_course(index as u8, course);
+                        futures::executor::block_on(fut).unwrap();
+                        // TODO find better way than block_on
+                        Command::perform(async {}, |_| Message::ResetState)
+                    }
+                    _ => Command::none(),
+                }
+            }
+            Message::ResetState => {
+                self.state = AppState::Default;
+                Command::none()
             }
         }
     }

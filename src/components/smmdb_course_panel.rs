@@ -1,19 +1,28 @@
-use crate::{smmdb::Course2Response, Component, Message};
+use crate::{smmdb::Course2Response, styles::*, AppState, Message};
 
 use iced::{
-    container::{Style, StyleSheet},
-    Align, Background, Color, Column, Container, Element, Image, Length, Row, Space, Text,
+    button, container, Align, Background, Button, Color, Column, Container, Element, Image, Length,
+    Row, Space, Text,
 };
 use iced_native::widget::image::Handle;
 
 #[derive(Debug)]
 pub struct SmmdbCoursePanel {
+    panel_state: button::State,
     course: Course2Response,
     thumbnail: Option<Vec<u8>>,
 }
 
-impl Component for SmmdbCoursePanel {
-    fn view(&mut self) -> Element<Message> {
+impl SmmdbCoursePanel {
+    pub fn new(course: Course2Response) -> SmmdbCoursePanel {
+        SmmdbCoursePanel {
+            panel_state: button::State::new(),
+            course,
+            thumbnail: None,
+        }
+    }
+
+    pub fn view(&mut self, state: &AppState) -> Element<Message> {
         let course = self.course.get_course();
         let course_header = course.get_header();
 
@@ -37,20 +46,17 @@ impl Component for SmmdbCoursePanel {
                     .align_items(Align::Center),
             );
 
-        Container::new(content)
-            .style(SmmdbCoursePanelStyle)
+        Button::new(&mut self.panel_state, content)
+            .style(SmmdbCoursePanelStyle(state.clone()))
             .padding(12)
             .width(Length::Fill)
+            .on_press(match state {
+                AppState::DownloadSelect(index) => {
+                    Message::DownloadCourse(*index, self.course.get_id().clone())
+                }
+                _ => Message::Empty,
+            })
             .into()
-    }
-}
-
-impl SmmdbCoursePanel {
-    pub fn new(course: Course2Response) -> SmmdbCoursePanel {
-        SmmdbCoursePanel {
-            course,
-            thumbnail: None,
-        }
     }
 
     pub fn get_id(&self) -> &String {
@@ -62,26 +68,31 @@ impl SmmdbCoursePanel {
     }
 }
 
-struct SmmdbCoursePanelStyle;
+struct SmmdbCoursePanelStyle(AppState);
 
-impl StyleSheet for SmmdbCoursePanelStyle {
-    fn style(&self) -> Style {
-        Style {
+impl button::StyleSheet for SmmdbCoursePanelStyle {
+    fn active(&self) -> button::Style {
+        button::Style {
+            text_color: Color::BLACK,
+            background: match self.0 {
+                AppState::DownloadSelect(_) => Some(BACKGROUND_SELECT),
+                _ => None,
+            },
             border_color: Color::BLACK,
             border_radius: 4,
             border_width: 1,
-            ..Style::default()
+            ..button::Style::default()
         }
     }
 }
 
 struct ThumbnailStyle;
 
-impl StyleSheet for ThumbnailStyle {
-    fn style(&self) -> Style {
-        Style {
+impl container::StyleSheet for ThumbnailStyle {
+    fn style(&self) -> container::Style {
+        container::Style {
             background: Some(Background::Color(Color::from_rgba(0., 0., 0., 0.5))),
-            ..Style::default()
+            ..container::Style::default()
         }
     }
 }

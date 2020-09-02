@@ -80,8 +80,9 @@ impl CoursePanel {
                             .height(Length::Units(24)),
                     )
                     .on_press(match state {
-                        AppState::SwapSelect(_) => Message::CancelSwap,
-                        _ => Message::InitSwapCourse(index),
+                        AppState::SwapSelect(_) => Message::ResetState,
+                        AppState::Default => Message::InitSwapCourse(index),
+                        AppState::DownloadSelect(_) => Message::Empty,
                     })
                     .style(SwapButtonStyle(state.clone(), index)),
                 )
@@ -94,13 +95,20 @@ impl CoursePanel {
                         .height(Length::Units(24)),
                 ));
         } else {
-            actions = actions.push(Button::new(
-                &mut self.add_state,
-                icon::ADD
-                    .clone()
-                    .width(Length::Units(24))
-                    .height(Length::Units(24)),
-            ));
+            actions = actions.push(
+                Button::new(
+                    &mut self.add_state,
+                    icon::ADD
+                        .clone()
+                        .width(Length::Units(24))
+                        .height(Length::Units(24)),
+                )
+                .on_press(match state {
+                    AppState::DownloadSelect(_) => Message::ResetState,
+                    AppState::Default => Message::InitDownloadCourse(index),
+                    AppState::SwapSelect(_) => Message::Empty,
+                }),
+            );
         }
 
         Row::new()
@@ -119,7 +127,6 @@ impl button::StyleSheet for CoursePanelStyle {
         button::Style {
             text_color: Color::BLACK,
             background: match self.0 {
-                AppState::Default => None,
                 AppState::SwapSelect(index) => {
                     if self.1 != index {
                         Some(BACKGROUND_SELECT)
@@ -127,6 +134,7 @@ impl button::StyleSheet for CoursePanelStyle {
                         None
                     }
                 }
+                _ => None,
             },
             border_color: Color::BLACK,
             border_radius: 4,
@@ -142,7 +150,6 @@ impl button::StyleSheet for SwapButtonStyle {
     fn active(&self) -> button::Style {
         button::Style {
             background: match self.0 {
-                AppState::Default => None,
                 AppState::SwapSelect(index) => {
                     if self.1 == index {
                         Some(BACKGROUND_SELECT)
@@ -150,6 +157,7 @@ impl button::StyleSheet for SwapButtonStyle {
                         None
                     }
                 }
+                _ => None,
             },
             border_radius: 4,
             ..button::Style::default()

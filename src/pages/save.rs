@@ -33,12 +33,20 @@ impl SavePage {
     ) -> Element<crate::Message> {
         Row::new()
             .push(self.save_widget.view(state, &self.location))
-            .push(self.smmdb_widget.view(smmdb_course_panels))
+            .push(self.smmdb_widget.view(state, smmdb_course_panels))
             .into()
     }
 
     pub async fn swap_courses(&mut self, first: u8, second: u8) -> Result<()> {
         self.save.swap_course(first, second)?;
+        self.save
+            .save()
+            .await
+            .map_err(|err| -> anyhow::Error { err.into() })
+    }
+
+    pub async fn add_course(&mut self, index: u8, course: smmdb_lib::Course2) -> Result<()> {
+        self.save.add_course(index, course)?;
         self.save
             .save()
             .await

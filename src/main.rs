@@ -12,7 +12,6 @@ mod styles;
 mod widgets;
 
 pub use app::{AppState, Message};
-pub use components::Component;
 pub use emu::{EmuSave, EmuType};
 pub use pages::Page;
 pub use smmdb::Smmdb;

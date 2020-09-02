@@ -1,4 +1,4 @@
-use crate::{components::SmmdbCoursePanel, font, styles::*, Component};
+use crate::{components::SmmdbCoursePanel, font, styles::*, AppState};
 
 use iced::{scrollable, Element, Length, Scrollable, Text};
 use indexmap::IndexMap;
@@ -16,6 +16,7 @@ impl SmmdbWidget {
 
     pub fn view<'a>(
         &'a mut self,
+        state: &AppState,
         course_panels: &'a mut IndexMap<String, SmmdbCoursePanel>,
     ) -> Element<crate::Message> {
         let mut content = Scrollable::new(&mut self.state)
@@ -23,7 +24,7 @@ impl SmmdbWidget {
             .spacing(LIST_SPACING)
             .push(Text::new("SMMDB").font(font::SMME));
         for panel in course_panels.values_mut() {
-            content = content.push(panel.view());
+            content = content.push(panel.view(state));
         }
 
         content.width(Length::FillPortion(1)).into()

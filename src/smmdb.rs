@@ -51,7 +51,6 @@ impl Smmdb {
     pub async fn update(query_params: QueryParams) -> Result<Vec<Course2Response>> {
         let qs = serde_qs::to_string(&query_params)
             .map_err(|err| io::Error::new(ErrorKind::Other, err.to_string()))?;
-        dbg!(&qs);
         let body = Client::new()
             .get(&format!("https://api.smmdb.net/courses2?{}", qs))
             .send()
@@ -68,6 +67,16 @@ impl Smmdb {
                 "https://api.smmdb.net/courses2/thumbnail/{}?size=m",
                 id
             ))
+            .send()
+            .await?
+            .bytes()
+            .await?;
+        Ok(bytes.into_iter().collect())
+    }
+
+    pub async fn download_course(id: String) -> Result<Vec<u8>> {
+        let bytes = Client::new()
+            .get(&format!("https://api.smmdb.net/courses2/download/{}", id))
             .send()
             .await?
             .bytes()

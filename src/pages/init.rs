@@ -1,4 +1,4 @@
-use crate::{components::SaveButton, styles::*, Component, Message};
+use crate::{components::SaveButton, styles::*, Message};
 
 use iced::{button, Button, Column, Element, Text};
 
