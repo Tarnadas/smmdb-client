@@ -59,14 +59,14 @@ impl CoursePanel {
                 .into()
         };
 
-        let panel = Button::new(&mut self.panel_state, content)
+        let mut panel = Button::new(&mut self.panel_state, content)
             .style(CoursePanelStyle(state.clone(), index))
             .padding(12)
-            .width(Length::Fill)
-            .on_press(match state {
-                AppState::SwapSelect(idx) => Message::SwapCourse(*idx, index),
-                _ => Message::Empty,
-            });
+            .width(Length::Fill);
+        panel = match state {
+            AppState::SwapSelect(idx) => panel.on_press(Message::SwapCourse(*idx, index)),
+            _ => panel,
+        };
 
         let mut actions = Column::new();
         if self.course.is_some() {
@@ -79,7 +79,13 @@ impl CoursePanel {
             )
             .style(SwapButtonStyle(state.clone(), index));
             swap_button = match state {
-                AppState::SwapSelect(_) => swap_button.on_press(Message::ResetState),
+                AppState::SwapSelect(idx) => {
+                    if *idx == index {
+                        swap_button.on_press(Message::ResetState)
+                    } else {
+                        swap_button.on_press(Message::InitSwapCourse(index))
+                    }
+                }
                 AppState::Default | AppState::DownloadSelect(_) => {
                     swap_button.on_press(Message::InitSwapCourse(index))
                 }
@@ -105,9 +111,16 @@ impl CoursePanel {
                     .clone()
                     .width(Length::Units(24))
                     .height(Length::Units(24)),
-            );
+            )
+            .style(DownloadButtonStyle(state.clone(), index));
             download_button = match state {
-                AppState::DownloadSelect(_) => download_button.on_press(Message::ResetState),
+                AppState::DownloadSelect(idx) => {
+                    if *idx == index {
+                        download_button.on_press(Message::ResetState)
+                    } else {
+                        download_button.on_press(Message::InitDownloadCourse(index))
+                    }
+                }
                 AppState::Default | AppState::SwapSelect(_) => {
                     download_button.on_press(Message::InitDownloadCourse(index))
                 }
@@ -135,16 +148,60 @@ impl button::StyleSheet for CoursePanelStyle {
             background: match self.0 {
                 AppState::SwapSelect(index) => {
                     if self.1 != index {
-                        Some(BACKGROUND_SELECT)
+                        Some(PANEL_SELECT_ACTIVE)
                     } else {
-                        None
+                        Some(PANEL_ACTIVE)
                     }
                 }
-                _ => None,
+                _ => Some(PANEL_ACTIVE),
             },
-            border_color: Color::BLACK,
-            border_radius: 4,
-            border_width: 1,
+            border_radius: 8,
+            border_width: 0,
+            ..button::Style::default()
+        }
+    }
+
+    fn hovered(&self) -> button::Style {
+        button::Style {
+            text_color: Color::BLACK,
+            background: match self.0 {
+                AppState::SwapSelect(index) => {
+                    if self.1 != index {
+                        Some(PANEL_SELECT_HOVER)
+                    } else {
+                        Some(PANEL_ACTIVE)
+                    }
+                }
+                AppState::DownloadSelect(index) => {
+                    if self.1 == index {
+                        Some(PANEL_DOWNLOAD)
+                    } else {
+                        Some(PANEL_ACTIVE)
+                    }
+                }
+                _ => Some(PANEL_ACTIVE),
+            },
+            border_radius: 8,
+            border_width: 0,
+            ..button::Style::default()
+        }
+    }
+
+    fn disabled(&self) -> button::Style {
+        button::Style {
+            text_color: Color::BLACK,
+            background: match self.0 {
+                AppState::DownloadSelect(index) => {
+                    if self.1 == index {
+                        Some(PANEL_DOWNLOAD)
+                    } else {
+                        Some(PANEL_ACTIVE)
+                    }
+                }
+                _ => Some(PANEL_ACTIVE),
+            },
+            border_radius: 8,
+            border_width: 0,
             ..button::Style::default()
         }
     }
@@ -158,13 +215,87 @@ impl button::StyleSheet for SwapButtonStyle {
             background: match self.0 {
                 AppState::SwapSelect(index) => {
                     if self.1 == index {
-                        Some(BACKGROUND_SELECT)
+                        Some(BUTTON_SELECT_ACTIVE)
                     } else {
-                        None
+                        Some(BUTTON_ACTIVE)
                     }
                 }
-                _ => None,
+                _ => Some(BUTTON_ACTIVE),
             },
+            border_radius: 4,
+            ..button::Style::default()
+        }
+    }
+
+    fn hovered(&self) -> button::Style {
+        button::Style {
+            text_color: Color::WHITE,
+            background: match self.0 {
+                AppState::SwapSelect(index) => {
+                    if self.1 == index {
+                        Some(BUTTON_SELECT_CANCEL)
+                    } else {
+                        Some(BUTTON_HOVER)
+                    }
+                }
+                _ => Some(BUTTON_HOVER),
+            },
+            border_radius: 4,
+            ..button::Style::default()
+        }
+    }
+
+    fn disabled(&self) -> button::Style {
+        button::Style {
+            background: Some(BUTTON_DISABLED),
+            border_radius: 4,
+            ..button::Style::default()
+        }
+    }
+}
+
+struct DownloadButtonStyle(AppState, usize);
+
+impl button::StyleSheet for DownloadButtonStyle {
+    fn active(&self) -> button::Style {
+        button::Style {
+            background: match self.0 {
+                AppState::DownloadSelect(index) => {
+                    if self.1 == index {
+                        Some(BUTTON_SELECT_ACTIVE)
+                    } else {
+                        Some(BUTTON_ACTIVE)
+                    }
+                }
+                _ => Some(BUTTON_ACTIVE),
+            },
+            border_radius: 4,
+            border_width: 0,
+            ..button::Style::default()
+        }
+    }
+
+    fn hovered(&self) -> button::Style {
+        button::Style {
+            text_color: Color::WHITE,
+            background: match self.0 {
+                AppState::DownloadSelect(index) => {
+                    if self.1 == index {
+                        Some(BUTTON_SELECT_CANCEL)
+                    } else {
+                        Some(BUTTON_HOVER)
+                    }
+                }
+                _ => Some(BUTTON_HOVER),
+            },
+            border_radius: 4,
+            ..button::Style::default()
+        }
+    }
+
+    fn disabled(&self) -> button::Style {
+        button::Style {
+            background: Some(BUTTON_DISABLED),
             border_radius: 4,
             ..button::Style::default()
         }

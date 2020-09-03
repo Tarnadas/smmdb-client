@@ -2,10 +2,11 @@ use crate::{
     emu::*,
     pages::{InitPage, SavePage},
     smmdb::{Course2Response, QueryParams},
+    styles::*,
     EmuSave, Page, Smmdb,
 };
 
-use iced::{executor, Application, Command, Element};
+use iced::{container, executor, Application, Background, Command, Container, Element, Length};
 use nfd::Response;
 use std::{convert::TryInto, path::PathBuf};
 
@@ -233,9 +234,24 @@ impl Application for App {
     }
 
     fn view(&mut self) -> Element<Self::Message> {
-        match &mut self.current_page {
+        Container::new(match &mut self.current_page {
             Page::Init(init_page) => init_page.view().into(),
             Page::Save(save_page) => save_page.view(&self.state, self.smmdb.get_course_panels()),
+        })
+        .style(AppStyle)
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .into()
+    }
+}
+
+struct AppStyle;
+
+impl container::StyleSheet for AppStyle {
+    fn style(&self) -> container::Style {
+        container::Style {
+            background: Some(Background::Color(COLOR_YELLOW)),
+            ..container::Style::default()
         }
     }
 }

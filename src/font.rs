@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use iced::Font;
 
 pub const DEFAULT_FONT_BYTES: &'static [u8] = include_bytes!("../assets/fonts/helvetica.ttf");

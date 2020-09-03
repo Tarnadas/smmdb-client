@@ -1,4 +1,4 @@
-use crate::{EmuSave, EmuType, Message};
+use crate::{styles::*, EmuSave, EmuType, Message};
 
 use iced::{button, Button, Element, Text};
 use std::path::PathBuf;
@@ -19,7 +19,29 @@ impl SaveButton {
 
     pub fn view(&mut self) -> Element<Message> {
         Button::new(&mut self.state, Text::new(format!("{}", self.save)))
+            .padding(BUTTON_PADDING)
+            .style(SaveButtonStyle)
             .on_press(Message::OpenSave(self.save.clone()))
             .into()
+    }
+}
+
+struct SaveButtonStyle;
+
+impl button::StyleSheet for SaveButtonStyle {
+    fn active(&self) -> button::Style {
+        button::Style {
+            background: Some(BUTTON_ACTIVE),
+            border_radius: 4,
+            ..button::Style::default()
+        }
+    }
+
+    fn hovered(&self) -> button::Style {
+        button::Style {
+            background: Some(BUTTON_HOVER),
+            border_radius: 4,
+            ..button::Style::default()
+        }
     }
 }

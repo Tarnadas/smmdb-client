@@ -30,6 +30,8 @@ impl InitPage {
                 &mut self.open_custom_save,
                 Text::new("Select another save folder"),
             )
+            .padding(BUTTON_PADDING)
+            .style(SaveButtonStyle)
             .on_press(Message::OpenCustomSave),
         );
 
@@ -39,5 +41,25 @@ impl InitPage {
             .padding(CONTAINER_PADDING)
             .spacing(PAGE_SPACING)
             .into()
+    }
+}
+
+struct SaveButtonStyle;
+
+impl button::StyleSheet for SaveButtonStyle {
+    fn active(&self) -> button::Style {
+        button::Style {
+            background: Some(BUTTON_ACTIVE),
+            border_radius: 4,
+            ..button::Style::default()
+        }
+    }
+
+    fn hovered(&self) -> button::Style {
+        button::Style {
+            background: Some(BUTTON_HOVER),
+            border_radius: 4,
+            ..button::Style::default()
+        }
     }
 }

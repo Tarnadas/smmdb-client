@@ -75,17 +75,26 @@ impl button::StyleSheet for SmmdbCoursePanelStyle {
         button::Style {
             text_color: Color::BLACK,
             background: match self.0 {
-                AppState::DownloadSelect(_) => Some(BACKGROUND_SELECT),
-                _ => None,
+                AppState::DownloadSelect(_) => Some(PANEL_SELECT_ACTIVE),
+                _ => Some(PANEL_ACTIVE),
             },
-            border_color: Color::BLACK,
-            border_radius: 4,
-            border_width: 1,
+            border_radius: 8,
+            ..button::Style::default()
+        }
+    }
+
+    fn hovered(&self) -> button::Style {
+        button::Style {
+            text_color: Color::BLACK,
+            background: match self.0 {
+                AppState::DownloadSelect(_) => Some(PANEL_SELECT_HOVER),
+                _ => Some(PANEL_ACTIVE),
+            },
+            border_radius: 8,
             ..button::Style::default()
         }
     }
 }
-
 struct ThumbnailStyle;
 
 impl container::StyleSheet for ThumbnailStyle {
