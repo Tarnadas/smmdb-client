@@ -57,6 +57,16 @@ impl SavePage {
         Ok(())
     }
 
+    pub async fn delete_course(&mut self, index: u8) -> Result<()> {
+        self.save.remove_course(index)?;
+        self.save
+            .save()
+            .await
+            .map_err(|err| -> anyhow::Error { err.into() })?;
+        self.generate_course_panels();
+        Ok(())
+    }
+
     fn generate_course_panels(&mut self) {
         self.save_widget.generate_course_panels(&self.save);
     }

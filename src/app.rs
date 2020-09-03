@@ -23,6 +23,7 @@ pub enum AppState {
     Loading,
     SwapSelect(usize),
     DownloadSelect(usize),
+    DeleteSelect(usize),
 }
 
 #[derive(Clone, Debug)]
@@ -42,6 +43,8 @@ pub enum Message {
     InitDownloadCourse(usize),
     DownloadCourse(usize, String),
     SetCourse(usize, Vec<u8>),
+    InitDeleteCourse(usize),
+    DeleteCourse(usize),
     ResetState,
 }
 
@@ -219,6 +222,23 @@ impl Application for App {
                     Page::Save(ref mut save_page) => {
                         let course: smmdb_lib::Course2 = data.try_into().unwrap();
                         let fut = save_page.add_course(index as u8, course);
+                        futures::executor::block_on(fut).unwrap();
+                        // TODO find better way than block_on
+                        Command::perform(async {}, |_| Message::ResetState)
+                    }
+                    _ => Command::none(),
+                }
+            }
+            Message::InitDeleteCourse(index) => {
+                self.state = AppState::DeleteSelect(index);
+                Command::none()
+            }
+            Message::DeleteCourse(index) => {
+                self.state = AppState::Loading;
+
+                match self.current_page {
+                    Page::Save(ref mut save_page) => {
+                        let fut = save_page.delete_course(index as u8);
                         futures::executor::block_on(fut).unwrap();
                         // TODO find better way than block_on
                         Command::perform(async {}, |_| Message::ResetState)

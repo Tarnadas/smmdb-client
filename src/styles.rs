@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use iced::{Background, Color};
+use iced::{button, Background, Color};
 
 // Spacings
 pub const CONTAINER_PADDING: u16 = 20;
@@ -31,4 +31,25 @@ pub const BUTTON_SELECT_ACTIVE: Background = Background::Color(COLOR_LIGHTER_YEL
 pub const BUTTON_SELECT_CANCEL: Background = Background::Color(COLOR_RED);
 pub const BUTTON_HOVER: Background = Background::Color(COLOR_LIGHT_GREEN);
 pub const BUTTON_SELECT_HOVER: Background = Background::Color(COLOR_LIGHT_YELLOW);
+pub const BUTTON_DANGER: Background = Background::Color(COLOR_RED);
 pub const BUTTON_DISABLED: Background = Background::Color(COLOR_GRAY);
+
+pub struct DefaultButtonStyle;
+
+impl button::StyleSheet for DefaultButtonStyle {
+    fn active(&self) -> button::Style {
+        button::Style {
+            background: Some(BUTTON_ACTIVE),
+            border_radius: 4,
+            ..button::Style::default()
+        }
+    }
+
+    fn hovered(&self) -> button::Style {
+        button::Style {
+            background: Some(BUTTON_HOVER),
+            border_radius: 4,
+            ..button::Style::default()
+        }
+    }
+}
