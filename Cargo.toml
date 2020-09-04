@@ -20,7 +20,7 @@ reqwest = "0.10"
 serde = { version = "1", features = [ "derive" ] }
 serde_json = "1"
 serde_qs = "0.6"
-smmdb-lib = { version = "1", features = [ "save" ], package = "smmdb", path = "../smmdb-lib" }
+smmdb-lib = { version = "1", features = [ "save" ], package = "smmdb" }
 
 [profile]
 [profile.dev]
