@@ -1,4 +1,4 @@
-use crate::{components::SaveButton, styles::*, Message};
+use crate::{components::SaveButton, styles::*, AppState, Message};
 
 use iced::{button, Button, Column, Element, Text};
 
@@ -17,23 +17,25 @@ impl InitPage {
 }
 
 impl InitPage {
-    pub fn view<'a>(&'a mut self) -> Element<crate::Message> {
+    pub fn view<'a>(&'a mut self, state: &AppState) -> Element<crate::Message> {
         let mut content = self.save_buttons.iter_mut().fold(
             Column::new()
                 .padding(CONTAINER_PADDING)
                 .spacing(LIST_SPACING),
-            |acc, save_button| acc.push(save_button.view()),
+            |acc, save_button| acc.push(save_button.view(state)),
         );
 
-        content = content.push(
-            Button::new(
-                &mut self.open_custom_save,
-                Text::new("Select another save folder"),
-            )
-            .padding(BUTTON_PADDING)
-            .style(DefaultButtonStyle)
-            .on_press(Message::OpenCustomSave),
-        );
+        let mut custom_save_button = Button::new(
+            &mut self.open_custom_save,
+            Text::new("Select another save folder"),
+        )
+        .padding(BUTTON_PADDING)
+        .style(DefaultButtonStyle);
+        custom_save_button = match state {
+            AppState::Loading => custom_save_button,
+            _ => custom_save_button.on_press(Message::OpenCustomSave),
+        };
+        content = content.push(custom_save_button);
 
         Column::new()
             .push(Text::new("Please select your save folder").size(36))

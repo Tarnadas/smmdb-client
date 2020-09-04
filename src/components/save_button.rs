@@ -1,4 +1,4 @@
-use crate::{styles::*, EmuSave, EmuType, Message};
+use crate::{styles::*, AppState, EmuSave, EmuType, Message};
 
 use iced::{button, Button, Element, Text};
 use std::path::PathBuf;
@@ -17,12 +17,15 @@ impl SaveButton {
         }
     }
 
-    pub fn view(&mut self) -> Element<Message> {
-        Button::new(&mut self.state, Text::new(format!("{}", self.save)))
+    pub fn view(&mut self, state: &AppState) -> Element<Message> {
+        let mut save_button = Button::new(&mut self.state, Text::new(format!("{}", self.save)))
             .padding(BUTTON_PADDING)
-            .style(SaveButtonStyle)
-            .on_press(Message::OpenSave(self.save.clone()))
-            .into()
+            .style(SaveButtonStyle);
+        save_button = match state {
+            AppState::Loading => save_button,
+            _ => save_button.on_press(Message::OpenSave(self.save.clone())),
+        };
+        save_button.into()
     }
 }
 
