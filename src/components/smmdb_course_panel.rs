@@ -2,7 +2,7 @@ use crate::{smmdb::Course2Response, styles::*, AppState, Message};
 
 use iced::{
     button, container, Align, Background, Button, Color, Column, Container, Element, Image, Length,
-    ProgressBar, Row, Space, Text,
+    Row, Space, Text,
 };
 use iced_native::widget::image::Handle;
 
@@ -35,7 +35,7 @@ impl SmmdbCoursePanel {
             Space::new(Length::Units(240), Length::Units(135)).into()
         };
 
-        let mut content = Column::new()
+        let content = Column::new()
             .push(Text::new(format!("{}", course_header.get_title())).size(24))
             .push(Space::with_height(Length::Units(10)))
             .push(
@@ -45,21 +45,6 @@ impl SmmdbCoursePanel {
                     .push(Text::new(format!("{}", course_header.get_description())).size(15))
                     .align_items(Align::Center),
             );
-
-        content = if let AppState::Downloading {
-            smmdb_id, progress, ..
-        } = state
-        {
-            if smmdb_id == self.course.get_id() {
-                content
-                    .push(Space::with_height(Length::Units(16)))
-                    .push(ProgressBar::new(0.0..=100.0, *progress))
-            } else {
-                content
-            }
-        } else {
-            content
-        };
 
         match state {
             AppState::DownloadSelect(index) => Button::new(&mut self.panel_state, content)

@@ -1,8 +1,8 @@
 use crate::{font::*, icon, styles::*, AppState, Message};
 
 use iced::{
-    button, container, image, Align, Button, Color, Column, Container, Element, Image, Length, Row,
-    Space, Text,
+    button, container, image, Align, Button, Color, Column, Container, Element, Image, Length,
+    ProgressBar, Row, Space, Text,
 };
 use smmdb_lib::SavedCourse;
 
@@ -95,7 +95,23 @@ impl CoursePanel {
 
             content.into()
         } else {
-            Container::new(Text::new("empty").size(18).width(Length::Shrink))
+            let empty_text = Text::new("empty").size(18).width(Length::Shrink);
+            let content: Element<Message> = if let AppState::Downloading {
+                save_index,
+                progress,
+                ..
+            } = state
+            {
+                if *save_index == index {
+                    ProgressBar::new(0.0..=100.0, *progress).into()
+                } else {
+                    empty_text.into()
+                }
+            } else {
+                empty_text.into()
+            };
+
+            Container::new(content)
                 .width(Length::Fill)
                 .height(Length::Units(80))
                 .center_x()
