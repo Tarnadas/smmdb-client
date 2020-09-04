@@ -18,20 +18,24 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install dependencies
       run: |
+        sudo apt-get update && \
         sudo apt-get install -y --no-install-recommends libgtk-3-dev
     - name: Install nightly
       uses: actions-rs/toolchain@v1
       with:
           toolchain: nightly-2020-08-23
           override: true
+    - name: Check
+      run: cargo check
     - name: Build
-      run: cargo build --verbose
+      run: cargo build --release
     - name: Create Draft Release
-      uses: actions/create-release@v1
+      uses: ncipollo/release-action@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag: ${{ github.ref }}
+        name: Release ${{ github.ref }}
         draft: true
 
