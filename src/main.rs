@@ -3,6 +3,7 @@ extern crate lazy_static;
 
 mod app;
 mod components;
+mod download;
 mod emu;
 mod font;
 mod icon;
@@ -12,6 +13,7 @@ mod styles;
 mod widgets;
 
 pub use app::{AppState, Message};
+pub use download::{Download, Progress};
 pub use emu::{EmuSave, EmuType};
 pub use pages::Page;
 pub use smmdb::Smmdb;

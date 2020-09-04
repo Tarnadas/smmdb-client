@@ -2,7 +2,7 @@ use crate::{smmdb::Course2Response, styles::*, AppState, Message};
 
 use iced::{
     button, container, Align, Background, Button, Color, Column, Container, Element, Image, Length,
-    Row, Space, Text,
+    ProgressBar, Row, Space, Text,
 };
 use iced_native::widget::image::Handle;
 
@@ -35,7 +35,7 @@ impl SmmdbCoursePanel {
             Space::new(Length::Units(240), Length::Units(135)).into()
         };
 
-        let content = Column::new()
+        let mut content = Column::new()
             .push(Text::new(format!("{}", course_header.get_title())).size(24))
             .push(Space::with_height(Length::Units(10)))
             .push(
@@ -46,17 +46,37 @@ impl SmmdbCoursePanel {
                     .align_items(Align::Center),
             );
 
-        Button::new(&mut self.panel_state, content)
-            .style(SmmdbCoursePanelStyle(state.clone()))
-            .padding(12)
-            .width(Length::Fill)
-            .on_press(match state {
-                AppState::DownloadSelect(index) => {
-                    Message::DownloadCourse(*index, self.course.get_id().clone())
-                }
-                _ => Message::Empty,
-            })
-            .into()
+        content = if let AppState::Downloading {
+            smmdb_id, progress, ..
+        } = state
+        {
+            if smmdb_id == self.course.get_id() {
+                content
+                    .push(Space::with_height(Length::Units(16)))
+                    .push(ProgressBar::new(0.0..=100.0, *progress))
+            } else {
+                content
+            }
+        } else {
+            content
+        };
+
+        match state {
+            AppState::DownloadSelect(index) => Button::new(&mut self.panel_state, content)
+                .style(SmmdbCoursePanelButtonStyle(state.clone()))
+                .padding(12)
+                .width(Length::Fill)
+                .on_press(Message::DownloadCourse(
+                    *index,
+                    self.course.get_id().clone(),
+                ))
+                .into(),
+            _ => Container::new(content)
+                .style(SmmdbCoursePanelStyle)
+                .padding(12)
+                .width(Length::Fill)
+                .into(),
+        }
     }
 
     pub fn get_id(&self) -> &String {
@@ -68,9 +88,9 @@ impl SmmdbCoursePanel {
     }
 }
 
-struct SmmdbCoursePanelStyle(AppState);
+struct SmmdbCoursePanelButtonStyle(AppState);
 
-impl button::StyleSheet for SmmdbCoursePanelStyle {
+impl button::StyleSheet for SmmdbCoursePanelButtonStyle {
     fn active(&self) -> button::Style {
         button::Style {
             text_color: Color::BLACK,
@@ -92,6 +112,18 @@ impl button::StyleSheet for SmmdbCoursePanelStyle {
             },
             border_radius: 8,
             ..button::Style::default()
+        }
+    }
+}
+
+struct SmmdbCoursePanelStyle;
+
+impl container::StyleSheet for SmmdbCoursePanelStyle {
+    fn style(&self) -> container::Style {
+        container::Style {
+            background: Some(PANEL_ACTIVE),
+            border_radius: 8,
+            ..container::Style::default()
         }
     }
 }

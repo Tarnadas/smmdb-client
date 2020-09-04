@@ -3,7 +3,7 @@ use crate::{
     pages::{InitPage, SavePage},
     smmdb::{Course2Response, QueryParams},
     styles::*,
-    EmuSave, Page, Smmdb,
+    EmuSave, Page, Progress, Smmdb,
 };
 
 use iced::{
@@ -27,6 +27,11 @@ pub enum AppState {
     SwapSelect(usize),
     DownloadSelect(usize),
     DeleteSelect(usize),
+    Downloading {
+        save_index: usize,
+        smmdb_id: String,
+        progress: f32,
+    },
 }
 
 #[derive(Clone, Debug)]
@@ -45,7 +50,7 @@ pub enum Message {
     SwapCourse(usize, usize),
     InitDownloadCourse(usize),
     DownloadCourse(usize, String),
-    SetCourse(usize, Vec<u8>),
+    DownloadProgressed(Progress),
     InitDeleteCourse(usize),
     DeleteCourse(usize),
     ResetState,
@@ -201,36 +206,49 @@ impl Application for App {
                 self.state = AppState::DownloadSelect(index);
                 Command::none()
             }
-            Message::DownloadCourse(index, id) => {
-                self.state = AppState::Loading;
-
-                Command::perform(
-                    async move {
-                        futures::join!(
-                            Smmdb::download_course(id),
-                            futures::future::ok::<usize, usize>(index)
-                        )
-                    },
-                    |(data, index)| {
-                        if let (Ok(data), Ok(index)) = (data, index) {
-                            Message::SetCourse(index, data)
-                        } else {
-                            todo!()
+            Message::DownloadCourse(save_index, smmdb_id) => {
+                self.state = AppState::Downloading {
+                    save_index,
+                    smmdb_id,
+                    progress: 0.,
+                };
+                Command::none()
+            }
+            Message::DownloadProgressed(message) => {
+                match &mut self.state {
+                    AppState::Downloading {
+                        save_index,
+                        progress,
+                        ..
+                    } => match message {
+                        Progress::Started => {
+                            *progress = 0.;
+                        }
+                        Progress::Advanced(percentage) => {
+                            *progress = percentage;
+                        }
+                        Progress::Finished(data) => {
+                            let save_index = save_index.clone();
+                            match self.current_page {
+                                Page::Save(ref mut save_page) => {
+                                    let course: smmdb_lib::Course2 = data.try_into().unwrap();
+                                    let fut = save_page.add_course(save_index as u8, course);
+                                    futures::executor::block_on(fut).unwrap();
+                                    // TODO find better way than block_on
+                                    return Command::perform(async {}, |_| Message::ResetState);
+                                }
+                                _ => {
+                                    // TODO
+                                }
+                            }
+                        }
+                        Progress::Errored => {
+                            // TODO
                         }
                     },
-                )
-            }
-            Message::SetCourse(index, data) => {
-                match self.current_page {
-                    Page::Save(ref mut save_page) => {
-                        let course: smmdb_lib::Course2 = data.try_into().unwrap();
-                        let fut = save_page.add_course(index as u8, course);
-                        futures::executor::block_on(fut).unwrap();
-                        // TODO find better way than block_on
-                        Command::perform(async {}, |_| Message::ResetState)
-                    }
-                    _ => Command::none(),
-                }
+                    _ => {}
+                };
+                Command::none()
             }
             Message::InitDeleteCourse(index) => {
                 self.state = AppState::DeleteSelect(index);
@@ -257,7 +275,7 @@ impl Application for App {
     }
 
     fn subscription(&self) -> Subscription<Message> {
-        match self.state {
+        match &self.state {
             AppState::SwapSelect(_) | AppState::DownloadSelect(_) | AppState::DeleteSelect(_) => {
                 subscription::events().map(|event| match event {
                     Event::Keyboard(keyboard::Event::KeyReleased {
@@ -266,6 +284,9 @@ impl Application for App {
                     }) => Message::ResetState,
                     _ => Message::Empty,
                 })
+            }
+            AppState::Downloading { smmdb_id, .. } => {
+                Smmdb::download_course(smmdb_id.clone()).map(Message::DownloadProgressed)
             }
             AppState::Default | AppState::Loading => Subscription::none(),
         }

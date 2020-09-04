@@ -1,6 +1,7 @@
-use crate::components::SmmdbCoursePanel;
+use crate::{components::SmmdbCoursePanel, Download, Progress};
 
 use anyhow::Result;
+use iced::Subscription;
 use indexmap::IndexMap;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -74,14 +75,10 @@ impl Smmdb {
         Ok(bytes.into_iter().collect())
     }
 
-    pub async fn download_course(id: String) -> Result<Vec<u8>> {
-        let bytes = Client::new()
-            .get(&format!("https://api.smmdb.net/courses2/download/{}", id))
-            .send()
-            .await?
-            .bytes()
-            .await?;
-        Ok(bytes.into_iter().collect())
+    pub fn download_course(id: String) -> Subscription<Progress> {
+        Subscription::from_recipe(Download {
+            url: format!("https://api.smmdb.net/courses2/download/{}", id),
+        })
     }
 }
 
