@@ -151,7 +151,7 @@ impl CoursePanel {
                         swap_button.on_press(Message::InitSwapCourse(index))
                     }
                 }
-                AppState::Loading => swap_button,
+                AppState::Loading | AppState::Downloading { .. } => swap_button,
                 _ => swap_button.on_press(Message::InitSwapCourse(index)),
             };
 
@@ -171,7 +171,7 @@ impl CoursePanel {
                         delete_button.on_press(Message::InitDeleteCourse(index))
                     }
                 }
-                AppState::Loading => delete_button,
+                AppState::Loading | AppState::Downloading { .. } => delete_button,
                 _ => delete_button.on_press(Message::InitDeleteCourse(index)),
             };
 
@@ -196,7 +196,7 @@ impl CoursePanel {
                         download_button.on_press(Message::InitDownloadCourse(index))
                     }
                 }
-                AppState::Loading => download_button,
+                AppState::Loading | AppState::Downloading { .. } => download_button,
                 _ => download_button.on_press(Message::InitDownloadCourse(index)),
             };
 
