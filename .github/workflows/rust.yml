@@ -16,6 +16,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Install latest nightly
+      uses: actions-rs/toolchain@v1
+      with:
+          toolchain: nightly-2020-08-23
+          override: true
     - name: Build
       run: cargo build --verbose
     - name: Create Draft Release
