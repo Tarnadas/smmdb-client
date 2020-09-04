@@ -53,6 +53,8 @@ pub enum Message {
     DownloadProgressed(Progress),
     InitDeleteCourse(usize),
     DeleteCourse(usize),
+    PaginateForward,
+    PaginateBackward,
     ResetState,
 }
 
@@ -267,6 +269,26 @@ impl Application for App {
                     _ => Command::none(),
                 }
             }
+            Message::PaginateForward => {
+                self.smmdb.paginate_forward();
+                Command::perform(
+                    Smmdb::update(self.smmdb.get_query_params().clone()),
+                    move |res| match res {
+                        Ok(courses) => Message::SetSmmdbCourses(courses),
+                        Err(err) => Message::FetchError(err.to_string()),
+                    },
+                )
+            }
+            Message::PaginateBackward => {
+                self.smmdb.paginate_backward();
+                Command::perform(
+                    Smmdb::update(self.smmdb.get_query_params().clone()),
+                    move |res| match res {
+                        Ok(courses) => Message::SetSmmdbCourses(courses),
+                        Err(err) => Message::FetchError(err.to_string()),
+                    },
+                )
+            }
             Message::ResetState => {
                 self.state = AppState::Default;
                 Command::none()
@@ -295,7 +317,7 @@ impl Application for App {
     fn view(&mut self) -> Element<Self::Message> {
         Container::new(match &mut self.current_page {
             Page::Init(init_page) => init_page.view().into(),
-            Page::Save(save_page) => save_page.view(&self.state, self.smmdb.get_course_panels()),
+            Page::Save(save_page) => save_page.view(&self.state, &mut self.smmdb),
         })
         .style(AppStyle)
         .width(Length::Fill)

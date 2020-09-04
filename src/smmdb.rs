@@ -35,10 +35,9 @@ impl Smmdb {
     }
 
     pub fn set_course_panel_thumbnail(&mut self, id: &String, thumbnail: Vec<u8>) {
-        self.course_panels
-            .get_mut(id)
-            .unwrap()
-            .set_thumbnail(thumbnail);
+        if let Some(course_panel) = self.course_panels.get_mut(id) {
+            course_panel.set_thumbnail(thumbnail);
+        }
     }
 
     pub fn get_course_panels(&mut self) -> &mut IndexMap<String, SmmdbCoursePanel> {
@@ -47,6 +46,22 @@ impl Smmdb {
 
     pub fn get_query_params(&self) -> &QueryParams {
         &self.query_params
+    }
+
+    pub fn can_paginate_forward(&self) -> bool {
+        self.course_panels.len() as u32 == self.query_params.limit
+    }
+
+    pub fn can_paginate_backward(&self) -> bool {
+        self.query_params.skip > 0
+    }
+
+    pub fn paginate_forward(&mut self) {
+        self.query_params.skip += self.query_params.limit;
+    }
+
+    pub fn paginate_backward(&mut self) {
+        self.query_params.skip -= self.query_params.limit;
     }
 
     pub async fn update(query_params: QueryParams) -> Result<Vec<Course2Response>> {
@@ -117,9 +132,9 @@ pub enum Difficulty {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct QueryParams {
     #[serde(default = "limit_default")]
-    limit: u32,
+    pub limit: u32,
     #[serde(default)]
-    skip: Option<u32>,
+    pub skip: u32,
     #[serde(default)]
     id: Option<String>,
     #[serde(default)]
