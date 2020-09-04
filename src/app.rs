@@ -6,7 +6,10 @@ use crate::{
     EmuSave, Page, Smmdb,
 };
 
-use iced::{container, executor, Application, Background, Command, Container, Element, Length};
+use iced::{
+    container, executor, Application, Background, Command, Container, Element, Length, Subscription,
+};
+use iced_native::{keyboard, subscription, Event};
 use nfd::Response;
 use std::{convert::TryInto, path::PathBuf};
 
@@ -250,6 +253,21 @@ impl Application for App {
                 self.state = AppState::Default;
                 Command::none()
             }
+        }
+    }
+
+    fn subscription(&self) -> Subscription<Message> {
+        match self.state {
+            AppState::SwapSelect(_) | AppState::DownloadSelect(_) | AppState::DeleteSelect(_) => {
+                subscription::events().map(|event| match event {
+                    Event::Keyboard(keyboard::Event::KeyReleased {
+                        key_code: keyboard::KeyCode::Escape,
+                        modifiers: _,
+                    }) => Message::ResetState,
+                    _ => Message::Empty,
+                })
+            }
+            AppState::Default | AppState::Loading => Subscription::none(),
         }
     }
 
