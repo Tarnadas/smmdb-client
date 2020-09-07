@@ -16,6 +16,7 @@ pub const COLOR_GREEN: Color = Color::from_rgb(0., 0.592, 0.518);
 pub const COLOR_LIGHT_GREEN: Color = Color::from_rgb(0.665, 0.941, 0.598);
 pub const COLOR_LIGHTER_GREEN: Color = Color::from_rgb(0.85, 1., 0.85);
 pub const COLOR_RED: Color = Color::from_rgb(1., 0., 0.);
+pub const COLOR_DARK_RED: Color = Color::from_rgb(0.6, 0., 0.);
 pub const COLOR_BROWN: Color = Color::from_rgb(0.38, 0.094, 0.129);
 pub const COLOR_GRAY: Color = Color::from_rgb(0.4, 0.4, 0.4);
 

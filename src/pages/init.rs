@@ -1,6 +1,6 @@
-use crate::{components::SaveButton, styles::*, AppState, Message};
+use crate::{components::SaveButton, font::*, styles::*, AppState, Message};
 
-use iced::{button, Button, Column, Element, Text};
+use iced::{button, Button, Column, Element, Length, Space, Text};
 
 pub struct InitPage {
     open_custom_save: button::State,
@@ -36,6 +36,17 @@ impl InitPage {
             _ => custom_save_button.on_press(Message::OpenCustomSave),
         };
         content = content.push(custom_save_button);
+
+        content = if let AppState::Errored(err) = state {
+            content.push(Space::with_height(Length::Units(16))).push(
+                Text::new(err)
+                    .font(HELVETICA_BOLD)
+                    .size(22)
+                    .color(COLOR_DARK_RED),
+            )
+        } else {
+            content
+        };
 
         Column::new()
             .push(Text::new("Please select your save folder").size(36))

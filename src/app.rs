@@ -23,6 +23,7 @@ pub struct App {
 #[derive(Clone, Debug)]
 pub enum AppState {
     Default,
+    Errored(String),
     Loading,
     SwapSelect(usize),
     DownloadSelect(usize),
@@ -115,17 +116,14 @@ impl Application for App {
                     Ok(result) => match result {
                         Response::Okay(file_path) => {
                             let file_path: PathBuf = file_path.into();
-                            if is_yuzu_dir(file_path.clone()) {
-                                // TODO
-                                // self.components
-                                //     .insert(0, Box::new(SaveButton::new(file_path, EmuType::Yuzu)));
-                            } else if is_ryujinx_dir(file_path.clone()) {
-                                // TODO
-                                // self.components
-                                //     .insert(0, Box::new(SaveButton::new(file_path, EmuType::Ryujinx)));
-                            }
-                            // TODO save path on success
-                            Command::none()
+                            Command::perform(smmdb_lib::Save::new(file_path.clone()), move |res| {
+                                match res {
+                                    Ok(smmdb_save) => {
+                                        Message::LoadSave(smmdb_save, file_path.clone())
+                                    }
+                                    Err(err) => Message::LoadSaveError(err.into()),
+                                }
+                            })
                         }
                         Response::OkayMultiple(_files) => {
                             println!("Not multifile select");
@@ -147,9 +145,9 @@ impl Application for App {
                 Command::none()
             }
             Message::LoadSaveError(err) => {
-                self.state = AppState::Default;
-                dbg!(&err);
-                // TODO show error
+                eprintln!("{}", &err);
+                self.state =
+                    AppState::Errored(format!("Could not load save file. Full error:\n{}", err));
                 Command::none()
             }
             Message::FetchCourses(query_params) => {
@@ -316,7 +314,7 @@ impl Application for App {
             AppState::Downloading { smmdb_id, .. } => {
                 Smmdb::download_course(smmdb_id.clone()).map(Message::DownloadProgressed)
             }
-            AppState::Default | AppState::Loading => Subscription::none(),
+            AppState::Default | AppState::Errored(_) | AppState::Loading => Subscription::none(),
         }
     }
 

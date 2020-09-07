@@ -8,27 +8,73 @@ pub use save::*;
 
 pub fn guess_emu_dir() -> Vec<SaveButton> {
     let mut dirs = vec![];
+    let yuzu_guesses = ["yuzu", "yuzu-emu"];
+    let ryujinx_guesses = ["Ryujinx"];
     if let Some(data_dir) = dirs::data_dir() {
-        let guesses = ["yuzu", "yuzu-emu"];
-        for guess in guesses.iter() {
-            let mut data_dir = data_dir.clone();
-            data_dir.push(guess);
-            if data_dir.as_path().exists() && is_yuzu_dir(data_dir.clone()) {
-                dirs.push(SaveButton::new(data_dir, EmuType::Yuzu));
-            }
-        }
+        guess_dir(
+            &mut dirs,
+            data_dir.clone(),
+            &yuzu_guesses,
+            EmuType::Yuzu,
+            is_yuzu_dir,
+        );
+        guess_dir(
+            &mut dirs,
+            data_dir,
+            &ryujinx_guesses,
+            EmuType::Ryujinx,
+            is_ryujinx_dir,
+        );
     }
-    if let Some(data_dir) = dirs::config_dir() {
-        let guesses = ["Ryujinx"];
-        for guess in guesses.iter() {
-            let mut data_dir = data_dir.clone();
-            data_dir.push(guess);
-            if data_dir.as_path().exists() && is_ryujinx_dir(data_dir.clone()) {
-                dirs.push(SaveButton::new(data_dir, EmuType::Ryujinx));
-            }
-        }
+    if let Some(config_dir) = dirs::config_dir() {
+        guess_dir(
+            &mut dirs,
+            config_dir.clone(),
+            &yuzu_guesses,
+            EmuType::Yuzu,
+            is_yuzu_dir,
+        );
+        guess_dir(
+            &mut dirs,
+            config_dir,
+            &ryujinx_guesses,
+            EmuType::Ryujinx,
+            is_ryujinx_dir,
+        );
+    }
+    if let Some(data_local_dir) = dirs::data_local_dir() {
+        guess_dir(
+            &mut dirs,
+            data_local_dir.clone(),
+            &yuzu_guesses,
+            EmuType::Yuzu,
+            is_yuzu_dir,
+        );
+        guess_dir(
+            &mut dirs,
+            data_local_dir,
+            &ryujinx_guesses,
+            EmuType::Ryujinx,
+            is_ryujinx_dir,
+        );
     }
     dirs
+}
+
+fn guess_dir(
+    dirs: &mut Vec<SaveButton>,
+    dir: PathBuf,
+    guesses: &[&str],
+    emu_type: EmuType,
+    is_emu_type: fn(PathBuf) -> bool,
+) {
+    for guess in guesses.iter() {
+        let mut dir = dir.clone();
+        dir.push(guess);
+        if dir.as_path().exists() && is_emu_type(dir.clone()) {
+            dirs.push(SaveButton::new(dir, emu_type.clone()));
+        }
+    }
 }
 
 pub fn is_yuzu_dir(path: PathBuf) -> bool {
