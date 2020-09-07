@@ -6,7 +6,10 @@ use indexmap::IndexMap;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use smmdb_lib::proto::SMM2Course::SMM2Course;
-use std::io::{self, ErrorKind};
+use std::{
+    fmt,
+    io::{self, ErrorKind},
+};
 
 #[derive(Debug)]
 pub struct Smmdb {
@@ -76,6 +79,22 @@ impl Smmdb {
         }
     }
 
+    pub fn set_uploader(&mut self, uploader: String) {
+        if let "" = uploader.as_ref() {
+            self.query_params.uploader = None;
+        } else {
+            self.query_params.uploader = Some(uploader);
+        }
+    }
+
+    pub fn set_difficulty(&mut self, difficulty: Difficulty) {
+        if let Difficulty::Unset = difficulty {
+            self.query_params.difficulty = None;
+        } else {
+            self.query_params.difficulty = Some(difficulty);
+        }
+    }
+
     pub async fn update(query_params: QueryParams) -> Result<Vec<Course2Response>> {
         let qs = serde_qs::to_string(&query_params)
             .map_err(|err| io::Error::new(ErrorKind::Other, err.to_string()))?;
@@ -136,13 +155,36 @@ impl Course2Response {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Difficulty {
+    Unset,
     Easy,
     Normal,
     Expert,
     SuperExpert,
+}
+
+impl Difficulty {
+    pub const ALL: [Difficulty; 5] = [
+        Difficulty::Unset,
+        Difficulty::Easy,
+        Difficulty::Normal,
+        Difficulty::Expert,
+        Difficulty::SuperExpert,
+    ];
+}
+
+impl fmt::Display for Difficulty {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Difficulty::Unset => write!(f, ""),
+            Difficulty::Easy => write!(f, "Easy"),
+            Difficulty::Normal => write!(f, "Normal"),
+            Difficulty::Expert => write!(f, "Expert"),
+            Difficulty::SuperExpert => write!(f, "SuperExpert"),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -188,6 +230,10 @@ impl QueryParams {
         } else {
             ""
         }
+    }
+
+    pub fn get_difficulty(&self) -> Option<Difficulty> {
+        self.difficulty.clone()
     }
 }
 

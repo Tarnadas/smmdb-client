@@ -42,6 +42,7 @@ impl SmmdbCoursePanel {
                     .push(Text::new("Difficulty:").size(15))
                     .push(Space::with_width(Length::Units(4)));
                 match difficulty {
+                    Difficulty::Unset => row,
                     Difficulty::Easy => row
                         .push(Image::new(icon::EASY.clone()))
                         .push(Text::new("Easy").size(15)),

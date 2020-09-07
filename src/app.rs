@@ -1,7 +1,7 @@
 use crate::{
     emu::*,
     pages::{InitPage, SavePage},
-    smmdb::{Course2Response, QueryParams},
+    smmdb::{Course2Response, Difficulty, QueryParams},
     styles::*,
     EmuSave, Page, Progress, Smmdb,
 };
@@ -56,6 +56,7 @@ pub enum Message {
     DeleteCourse(usize),
     TitleChanged(String),
     UploaderChanged(String),
+    DifficultyChanged(Difficulty),
     ApplyFilters,
     PaginateForward,
     PaginateBackward,
@@ -282,7 +283,11 @@ impl Application for App {
                 Command::none()
             }
             Message::UploaderChanged(uploader) => {
-                self.smmdb.set_title(uploader);
+                self.smmdb.set_uploader(uploader);
+                Command::none()
+            }
+            Message::DifficultyChanged(difficulty) => {
+                self.smmdb.set_difficulty(difficulty);
                 Command::none()
             }
             Message::ApplyFilters => {

@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use iced::{button, text_input, Background, Color};
+use iced::{button, pick_list, text_input, Background, Color};
 
 // Spacings
 pub const CONTAINER_PADDING: u16 = 20;
@@ -41,6 +41,12 @@ pub const TEXT_INPUT_FOCUS: Background = Background::Color(COLOR_LIGHTER_GREEN);
 pub const TEXT_INPUT_PLACEHOLDER_COLOR: Color = COLOR_GRAY;
 pub const TEXT_INPUT_VALUE_COLOR: Color = Color::BLACK;
 pub const TEXT_INPUT_SELECTION_COLOR: Color = COLOR_LIGHT_GREEN;
+
+// PickList
+pub const PICK_LIST_MENU: Background = Background::Color(Color::WHITE);
+pub const PICK_LIST_ACTIVE: Background = Background::Color(Color::WHITE);
+pub const PICK_LIST_HOVER: Background = Background::Color(COLOR_LIGHTER_GREEN);
+pub const PICK_LIST_SELECT: Background = Background::Color(COLOR_LIGHT_GREEN);
 
 pub struct DefaultButtonStyle;
 
@@ -91,5 +97,33 @@ impl text_input::StyleSheet for DefaultTextInputStyle {
 
     fn selection_color(&self) -> Color {
         TEXT_INPUT_SELECTION_COLOR
+    }
+}
+
+pub struct DefaultPickListStyle;
+
+impl pick_list::StyleSheet for DefaultPickListStyle {
+    fn menu(&self) -> pick_list::Menu {
+        pick_list::Menu {
+            background: PICK_LIST_MENU,
+            selected_background: PICK_LIST_SELECT,
+            ..pick_list::Menu::default()
+        }
+    }
+
+    fn active(&self) -> pick_list::Style {
+        pick_list::Style {
+            background: PICK_LIST_ACTIVE,
+            border_radius: 4,
+            ..pick_list::Style::default()
+        }
+    }
+
+    fn hovered(&self) -> pick_list::Style {
+        pick_list::Style {
+            background: PICK_LIST_HOVER,
+            border_radius: 4,
+            ..pick_list::Style::default()
+        }
     }
 }

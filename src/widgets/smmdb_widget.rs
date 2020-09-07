@@ -1,14 +1,15 @@
-use crate::{font, styles::*, AppState, Message, Smmdb};
+use crate::{font, smmdb::Difficulty, styles::*, AppState, Message, Smmdb};
 
 use iced::{
-    button, scrollable, text_input, Align, Button, Column, Element, Length, Row, Scrollable, Space,
-    Text, TextInput,
+    button, pick_list, scrollable, text_input, Align, Button, Column, Element, Length, PickList,
+    Row, Scrollable, Space, Text, TextInput,
 };
 
 pub struct SmmdbWidget {
     state: scrollable::State,
     title_state: text_input::State,
     uploader_state: text_input::State,
+    difficulty_state: pick_list::State<Difficulty>,
     search_state: button::State,
     backward_state: button::State,
     forward_state: button::State,
@@ -20,6 +21,7 @@ impl SmmdbWidget {
             state: scrollable::State::new(),
             title_state: text_input::State::new(),
             uploader_state: text_input::State::new(),
+            difficulty_state: pick_list::State::default(),
             search_state: button::State::new(),
             backward_state: button::State::new(),
             forward_state: button::State::new(),
@@ -49,6 +51,14 @@ impl SmmdbWidget {
         )
         .style(DefaultTextInputStyle)
         .padding(4);
+        let difficulty_pick_list = PickList::new(
+            &mut self.difficulty_state,
+            &Difficulty::ALL[..],
+            query_params.get_difficulty().clone(),
+            Message::DifficultyChanged,
+        )
+        .style(DefaultPickListStyle)
+        .padding(4);
         let search_button = Button::new(&mut self.search_state, Text::new("Search"))
             .style(DefaultButtonStyle)
             .on_press(Message::ApplyFilters);
@@ -57,6 +67,8 @@ impl SmmdbWidget {
             .push(title_text_input)
             .push(Space::with_height(Length::Units(4)))
             .push(uploader_text_input)
+            .push(Space::with_height(Length::Units(4)))
+            .push(difficulty_pick_list)
             .push(Space::with_height(Length::Units(4)))
             .push(search_button);
 
