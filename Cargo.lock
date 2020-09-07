@@ -2167,8 +2167,7 @@ dependencies = [
 [[package]]
 name = "nfd"
 version = "0.0.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8e752e3c216bc8a491c5b59fa46da10f1379ae450b19ac688e07f4bb55042e98"
+source = "git+https://github.com/saurvs/nfd-rs.git#07578c5fea4d7b1f35fbf128f04b6264c3bf3c5a"
 dependencies = [
  "gcc",
 ]
@@ -3174,6 +3173,28 @@ dependencies = [
 
 [[package]]
 name = "smmdb"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "dirs 3.0.1",
+ "env_logger",
+ "futures",
+ "iced",
+ "iced_native",
+ "iced_wgpu",
+ "image",
+ "indexmap",
+ "lazy_static",
+ "nfd",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "serde_qs",
+ "smmdb 1.1.0",
+]
+
+[[package]]
+name = "smmdb"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "25d66037be9805ee1f62385d5f725ccc427427b3e30c30615cee10ff1131af5f"
@@ -3202,28 +3223,6 @@ dependencies = [
  "thiserror",
  "typenum",
  "zip",
-]
-
-[[package]]
-name = "smmdb-client"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "dirs 3.0.1",
- "env_logger",
- "futures",
- "iced",
- "iced_native",
- "iced_wgpu",
- "image",
- "indexmap",
- "lazy_static",
- "nfd",
- "reqwest",
- "serde",
- "serde_json",
- "serde_qs",
- "smmdb",
 ]
 
 [[package]]
