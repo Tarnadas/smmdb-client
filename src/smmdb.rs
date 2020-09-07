@@ -64,6 +64,14 @@ impl Smmdb {
         self.query_params.skip -= self.query_params.limit;
     }
 
+    pub fn set_title(&mut self, title: String) {
+        if let "" = title.as_ref() {
+            self.query_params.title = None;
+        } else {
+            self.query_params.title = Some(title);
+        }
+    }
+
     pub async fn update(query_params: QueryParams) -> Result<Vec<Course2Response>> {
         let qs = serde_qs::to_string(&query_params)
             .map_err(|err| io::Error::new(ErrorKind::Other, err.to_string()))?;
@@ -159,6 +167,24 @@ pub struct QueryParams {
     sort: Option<Vec<Sort>>,
     #[serde(default)]
     difficulty: Option<Difficulty>,
+}
+
+impl QueryParams {
+    pub fn get_title(&self) -> &str {
+        if let Some(title) = self.title.as_ref() {
+            title
+        } else {
+            ""
+        }
+    }
+
+    pub fn get_uploader(&self) -> &str {
+        if let Some(uploader) = self.uploader.as_ref() {
+            uploader
+        } else {
+            ""
+        }
+    }
 }
 
 fn limit_default() -> u32 {

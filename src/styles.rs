@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use iced::{button, Background, Color};
+use iced::{button, text_input, Background, Color};
 
 // Spacings
 pub const CONTAINER_PADDING: u16 = 20;
@@ -35,6 +35,13 @@ pub const BUTTON_SELECT_HOVER: Background = Background::Color(COLOR_LIGHT_YELLOW
 pub const BUTTON_DANGER: Background = Background::Color(COLOR_RED);
 pub const BUTTON_DISABLED: Background = Background::Color(COLOR_GRAY);
 
+// TextInput
+pub const TEXT_INPUT_ACTIVE: Background = Background::Color(Color::WHITE);
+pub const TEXT_INPUT_FOCUS: Background = Background::Color(COLOR_LIGHTER_YELLOW);
+pub const TEXT_INPUT_PLACEHOLDER_COLOR: Color = COLOR_GRAY;
+pub const TEXT_INPUT_VALUE_COLOR: Color = Color::BLACK;
+pub const TEXT_INPUT_SELECTION_COLOR: Color = COLOR_LIGHT_GREEN;
+
 pub struct DefaultButtonStyle;
 
 impl button::StyleSheet for DefaultButtonStyle {
@@ -52,5 +59,37 @@ impl button::StyleSheet for DefaultButtonStyle {
             border_radius: 4,
             ..button::Style::default()
         }
+    }
+}
+
+pub struct DefaultTextInputStyle;
+
+impl text_input::StyleSheet for DefaultTextInputStyle {
+    fn active(&self) -> text_input::Style {
+        text_input::Style {
+            background: TEXT_INPUT_ACTIVE,
+            border_radius: 4,
+            ..text_input::Style::default()
+        }
+    }
+
+    fn focused(&self) -> text_input::Style {
+        text_input::Style {
+            background: TEXT_INPUT_FOCUS,
+            border_radius: 4,
+            ..text_input::Style::default()
+        }
+    }
+
+    fn placeholder_color(&self) -> Color {
+        TEXT_INPUT_PLACEHOLDER_COLOR
+    }
+
+    fn value_color(&self) -> Color {
+        TEXT_INPUT_VALUE_COLOR
+    }
+
+    fn selection_color(&self) -> Color {
+        TEXT_INPUT_SELECTION_COLOR
     }
 }

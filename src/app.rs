@@ -54,6 +54,9 @@ pub enum Message {
     DownloadProgressed(Progress),
     InitDeleteCourse(usize),
     DeleteCourse(usize),
+    TitleChanged(String),
+    UploaderChanged(String),
+    ApplyFilters,
     PaginateForward,
     PaginateBackward,
     ResetState,
@@ -273,6 +276,21 @@ impl Application for App {
                     _ => Command::none(),
                 }
             }
+            Message::TitleChanged(title) => {
+                self.smmdb.set_title(title);
+                Command::none()
+            }
+            Message::UploaderChanged(uploader) => {
+                self.smmdb.set_title(uploader);
+                Command::none()
+            }
+            Message::ApplyFilters => Command::perform(
+                Smmdb::update(self.smmdb.get_query_params().clone()),
+                move |res| match res {
+                    Ok(courses) => Message::SetSmmdbCourses(courses),
+                    Err(err) => Message::FetchError(err.to_string()),
+                },
+            ),
             Message::PaginateForward => {
                 self.smmdb.paginate_forward();
                 Command::perform(
