@@ -1,6 +1,6 @@
 use crate::components::SaveButton;
 
-use std::path::PathBuf;
+use std::{collections::HashSet, path::PathBuf};
 
 mod save;
 
@@ -8,11 +8,13 @@ pub use save::*;
 
 pub fn guess_emu_dir() -> Vec<SaveButton> {
     let mut dirs = vec![];
+    let mut found_paths: HashSet<PathBuf> = HashSet::new();
     let yuzu_guesses = ["yuzu", "yuzu-emu"];
     let ryujinx_guesses = ["Ryujinx"];
     if let Some(data_dir) = dirs::data_dir() {
         guess_dir(
             &mut dirs,
+            &mut found_paths,
             data_dir.clone(),
             &yuzu_guesses,
             EmuType::Yuzu,
@@ -20,6 +22,7 @@ pub fn guess_emu_dir() -> Vec<SaveButton> {
         );
         guess_dir(
             &mut dirs,
+            &mut found_paths,
             data_dir,
             &ryujinx_guesses,
             EmuType::Ryujinx,
@@ -29,6 +32,7 @@ pub fn guess_emu_dir() -> Vec<SaveButton> {
     if let Some(config_dir) = dirs::config_dir() {
         guess_dir(
             &mut dirs,
+            &mut found_paths,
             config_dir.clone(),
             &yuzu_guesses,
             EmuType::Yuzu,
@@ -36,6 +40,7 @@ pub fn guess_emu_dir() -> Vec<SaveButton> {
         );
         guess_dir(
             &mut dirs,
+            &mut found_paths,
             config_dir,
             &ryujinx_guesses,
             EmuType::Ryujinx,
@@ -45,6 +50,7 @@ pub fn guess_emu_dir() -> Vec<SaveButton> {
     if let Some(data_local_dir) = dirs::data_local_dir() {
         guess_dir(
             &mut dirs,
+            &mut found_paths,
             data_local_dir.clone(),
             &yuzu_guesses,
             EmuType::Yuzu,
@@ -52,6 +58,7 @@ pub fn guess_emu_dir() -> Vec<SaveButton> {
         );
         guess_dir(
             &mut dirs,
+            &mut found_paths,
             data_local_dir,
             &ryujinx_guesses,
             EmuType::Ryujinx,
@@ -63,6 +70,7 @@ pub fn guess_emu_dir() -> Vec<SaveButton> {
 
 fn guess_dir(
     dirs: &mut Vec<SaveButton>,
+    found_paths: &mut HashSet<PathBuf>,
     dir: PathBuf,
     guesses: &[&str],
     emu_type: EmuType,
@@ -71,7 +79,8 @@ fn guess_dir(
     for guess in guesses.iter() {
         let mut dir = dir.clone();
         dir.push(guess);
-        if dir.as_path().exists() && is_emu_type(dir.clone()) {
+        if dir.as_path().exists() && is_emu_type(dir.clone()) && found_paths.get(&dir).is_none() {
+            found_paths.insert(dir.clone());
             dirs.push(SaveButton::new(dir, emu_type.clone()));
         }
     }
