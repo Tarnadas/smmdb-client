@@ -285,13 +285,17 @@ impl Application for App {
                 self.smmdb.set_title(uploader);
                 Command::none()
             }
-            Message::ApplyFilters => Command::perform(
-                Smmdb::update(self.smmdb.get_query_params().clone()),
-                move |res| match res {
-                    Ok(courses) => Message::SetSmmdbCourses(courses),
-                    Err(err) => Message::FetchError(err.to_string()),
-                },
-            ),
+            Message::ApplyFilters => {
+                self.state = AppState::Loading;
+                self.smmdb.reset_pagination();
+                Command::perform(
+                    Smmdb::update(self.smmdb.get_query_params().clone()),
+                    move |res| match res {
+                        Ok(courses) => Message::SetSmmdbCourses(courses),
+                        Err(err) => Message::FetchError(err.to_string()),
+                    },
+                )
+            }
             Message::PaginateForward => {
                 self.state = AppState::Loading;
                 self.smmdb.paginate_forward();

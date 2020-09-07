@@ -64,6 +64,10 @@ impl Smmdb {
         self.query_params.skip -= self.query_params.limit;
     }
 
+    pub fn reset_pagination(&mut self) {
+        self.query_params.skip = 0;
+    }
+
     pub fn set_title(&mut self, title: String) {
         if let "" = title.as_ref() {
             self.query_params.title = None;
