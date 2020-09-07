@@ -37,7 +37,7 @@ pub const BUTTON_DISABLED: Background = Background::Color(COLOR_GRAY);
 
 // TextInput
 pub const TEXT_INPUT_ACTIVE: Background = Background::Color(Color::WHITE);
-pub const TEXT_INPUT_FOCUS: Background = Background::Color(COLOR_LIGHTER_YELLOW);
+pub const TEXT_INPUT_FOCUS: Background = Background::Color(COLOR_LIGHTER_GREEN);
 pub const TEXT_INPUT_PLACEHOLDER_COLOR: Color = COLOR_GRAY;
 pub const TEXT_INPUT_VALUE_COLOR: Color = Color::BLACK;
 pub const TEXT_INPUT_SELECTION_COLOR: Color = COLOR_LIGHT_GREEN;
