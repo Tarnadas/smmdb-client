@@ -1,4 +1,4 @@
-use crate::{smmdb::Course2Response, styles::*, AppState, Message};
+use crate::{icon, smmdb::Course2Response, smmdb::Difficulty, styles::*, AppState, Message};
 
 use iced::{
     button, container, Align, Background, Button, Color, Column, Container, Element, Image, Length,
@@ -35,6 +35,31 @@ impl SmmdbCoursePanel {
             Space::new(Length::Units(240), Length::Units(135)).into()
         };
 
+        let difficulty: Element<Message> = match self.course.get_difficulty() {
+            Some(difficulty) => {
+                let row = Row::new()
+                    .align_items(Align::End)
+                    .push(Text::new("Difficulty:").size(15))
+                    .push(Space::with_width(Length::Units(4)));
+                match difficulty {
+                    Difficulty::Easy => row
+                        .push(Image::new(icon::EASY.clone()))
+                        .push(Text::new("Easy").size(15)),
+                    Difficulty::Normal => row
+                        .push(Image::new(icon::NORMAL.clone()))
+                        .push(Text::new("Normal").size(15)),
+                    Difficulty::Expert => row
+                        .push(Image::new(icon::EXPERT.clone()))
+                        .push(Text::new("Expert").size(15)),
+                    Difficulty::SuperExpert => row
+                        .push(Image::new(icon::SUPER_EXPERT.clone()))
+                        .push(Text::new("Super Expert").size(15)),
+                }
+                .into()
+            }
+            None => Space::with_height(Length::Shrink).into(),
+        };
+
         let content = Column::new()
             .push(Text::new(format!("{}", course_header.get_title())).size(24))
             .push(Space::with_height(Length::Units(10)))
@@ -42,7 +67,14 @@ impl SmmdbCoursePanel {
                 Row::new()
                     .push(Container::new(thumbnail).style(ThumbnailStyle))
                     .push(Space::with_width(Length::Units(10)))
-                    .push(Text::new(format!("{}", course_header.get_description())).size(15))
+                    .push(
+                        Row::new()
+                            .push(
+                                Text::new(format!("{}", course_header.get_description())).size(15),
+                            )
+                            .push(Space::with_height(Length::Units(LIST_SPACING)))
+                            .push(difficulty),
+                    )
                     .align_items(Align::Center),
             );
 

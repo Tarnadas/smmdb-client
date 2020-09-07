@@ -3175,6 +3175,8 @@ dependencies = [
 [[package]]
 name = "smmdb"
 version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "25d66037be9805ee1f62385d5f725ccc427427b3e30c30615cee10ff1131af5f"
 dependencies = [
  "aes-soft",
  "arr_macro",

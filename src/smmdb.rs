@@ -118,6 +118,10 @@ impl Course2Response {
     pub fn get_course(&self) -> &SMM2Course {
         &self.course
     }
+
+    pub fn get_difficulty(&self) -> Option<&Difficulty> {
+        self.difficulty.as_ref()
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
