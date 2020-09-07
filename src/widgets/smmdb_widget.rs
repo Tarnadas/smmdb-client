@@ -68,17 +68,27 @@ impl SmmdbWidget {
 
         let mut backward_button = Button::new(&mut self.backward_state, Text::new("<").size(24))
             .style(DefaultButtonStyle);
-        backward_button = if smmdb.can_paginate_backward() {
-            backward_button.on_press(Message::PaginateBackward)
-        } else {
-            backward_button
+        backward_button = match state {
+            AppState::Loading | AppState::Downloading { .. } => backward_button,
+            _ => {
+                if smmdb.can_paginate_backward() {
+                    backward_button.on_press(Message::PaginateBackward)
+                } else {
+                    backward_button
+                }
+            }
         };
         let mut forward_button =
             Button::new(&mut self.forward_state, Text::new(">").size(24)).style(DefaultButtonStyle);
-        forward_button = if smmdb.can_paginate_forward() {
-            forward_button.on_press(Message::PaginateForward)
-        } else {
-            forward_button
+        forward_button = match state {
+            AppState::Loading | AppState::Downloading { .. } => forward_button,
+            _ => {
+                if smmdb.can_paginate_forward() {
+                    forward_button.on_press(Message::PaginateForward)
+                } else {
+                    forward_button
+                }
+            }
         };
 
         let paginator = Row::new()

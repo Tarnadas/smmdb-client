@@ -160,11 +160,12 @@ impl Application for App {
                 })
             }
             Message::FetchError(err) => {
-                dbg!(err);
-                // TODO handle error
+                dbg!(&err);
+                self.state = AppState::Errored(err);
                 Command::none()
             }
             Message::SetSmmdbCourses(courses) => {
+                self.state = AppState::Default;
                 self.smmdb.set_courses(courses);
                 let course_ids: Vec<String> =
                     self.smmdb.get_course_panels().keys().cloned().collect();
@@ -292,6 +293,7 @@ impl Application for App {
                 },
             ),
             Message::PaginateForward => {
+                self.state = AppState::Loading;
                 self.smmdb.paginate_forward();
                 Command::perform(
                     Smmdb::update(self.smmdb.get_query_params().clone()),
@@ -302,6 +304,7 @@ impl Application for App {
                 )
             }
             Message::PaginateBackward => {
+                self.state = AppState::Loading;
                 self.smmdb.paginate_backward();
                 Command::perform(
                     Smmdb::update(self.smmdb.get_query_params().clone()),
