@@ -68,7 +68,7 @@ impl SmmdbCoursePanel {
                     .push(Container::new(thumbnail).style(ThumbnailStyle))
                     .push(Space::with_width(Length::Units(10)))
                     .push(
-                        Row::new()
+                        Column::new()
                             .push(
                                 Text::new(format!("{}", course_header.get_description())).size(15),
                             )
