@@ -5,20 +5,22 @@ use std::path::PathBuf;
 
 #[derive(Clone, Debug)]
 pub struct SaveButton {
+    display_name: String,
     state: button::State,
     save: EmuSave,
 }
 
 impl SaveButton {
-    pub fn new(location: PathBuf, emu_type: EmuType) -> SaveButton {
+    pub fn new(display_name: String, location: PathBuf, emu_type: EmuType) -> SaveButton {
         SaveButton {
+            display_name: display_name.clone(),
             state: button::State::new(),
-            save: EmuSave::new(location, emu_type),
+            save: EmuSave::new(display_name, location, emu_type),
         }
     }
 
     pub fn view(&mut self, state: &AppState) -> Element<Message> {
-        let mut save_button = Button::new(&mut self.state, Text::new(format!("{}", self.save)))
+        let mut save_button = Button::new(&mut self.state, Text::new(&self.display_name))
             .padding(BUTTON_PADDING)
             .style(SaveButtonStyle);
         save_button = match state {

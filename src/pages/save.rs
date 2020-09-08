@@ -5,21 +5,20 @@ use crate::{
 
 use anyhow::Result;
 use iced::{Element, Row};
-use std::path::PathBuf;
 
 pub struct SavePage {
     save: smmdb_lib::Save,
-    location: PathBuf,
+    display_name: String,
     save_widget: SaveWidget,
     smmdb_widget: SmmdbWidget,
 }
 
 impl SavePage {
-    pub fn new(save: smmdb_lib::Save, location: PathBuf) -> SavePage {
+    pub fn new(save: smmdb_lib::Save, display_name: String) -> SavePage {
         SavePage {
             save_widget: SaveWidget::new(&save),
             save,
-            location,
+            display_name,
             smmdb_widget: SmmdbWidget::new(),
         }
     }
@@ -30,7 +29,7 @@ impl SavePage {
         smmdb: &'a mut Smmdb,
     ) -> Element<crate::Message> {
         Row::new()
-            .push(self.save_widget.view(state, &self.location))
+            .push(self.save_widget.view(state, &self.display_name))
             .push(self.smmdb_widget.view(state, smmdb))
             .into()
     }

@@ -5,9 +5,9 @@ use std::{
 
 #[derive(Clone, Debug)]
 pub struct EmuSave {
+    display_name: String,
     location: PathBuf,
     emu_type: EmuType,
-    has_smm2_save: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -17,36 +17,20 @@ pub enum EmuType {
 }
 
 impl EmuSave {
-    pub fn new(location: PathBuf, emu_type: EmuType) -> EmuSave {
-        let mut smm2_location = location.clone();
-        smm2_location.push(EmuSave::get_smm2_subpath(&emu_type));
-        let has_smm2_save = smm2_location.exists();
+    pub fn new(display_name: String, location: PathBuf, emu_type: EmuType) -> EmuSave {
         EmuSave {
+            display_name,
             location,
             emu_type,
-            has_smm2_save,
         }
+    }
+
+    pub fn get_display_name(&self) -> &String {
+        &self.display_name
     }
 
     pub fn get_location(&self) -> &PathBuf {
         &self.location
-    }
-
-    pub fn get_smm2_location(&self) -> PathBuf {
-        let mut location = self.location.clone();
-        location.push(EmuSave::get_smm2_subpath(&self.emu_type));
-        location
-    }
-
-    fn get_smm2_subpath(emu_type: &EmuType) -> PathBuf {
-        match emu_type {
-            EmuType::Yuzu => {
-                "nand/user/save/0000000000000000/FDD588AE7826C7A9A70AE93C12A4E9CE/01009B90006DC000"
-                    .into()
-            }
-            // TODO this looks wrong
-            EmuType::Ryujinx => "bis/user/save/0000000000000001/0".into(),
-        }
     }
 }
 

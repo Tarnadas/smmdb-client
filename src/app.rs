@@ -6,6 +6,7 @@ use crate::{
     EmuSave, Page, Progress, Smmdb,
 };
 
+use futures::future;
 use iced::{
     container, executor, Application, Background, Command, Container, Element, Length, Subscription,
 };
@@ -41,7 +42,7 @@ pub enum Message {
     SetWindowSize(WindowSize),
     OpenSave(EmuSave),
     OpenCustomSave,
-    LoadSave(smmdb_lib::Save, PathBuf),
+    LoadSave(smmdb_lib::Save, String),
     LoadSaveError(String),
     FetchCourses(QueryParams),
     FetchError(String),
@@ -75,7 +76,7 @@ impl Application for App {
     type Flags = ();
 
     fn new(_flags: ()) -> (App, Command<Self::Message>) {
-        let components = guess_emu_dir();
+        let components = guess_emu_dir().unwrap();
         let smmdb = Smmdb::new();
         let query_params = smmdb.get_query_params().clone();
         (
@@ -105,14 +106,22 @@ impl Application for App {
             }
             Message::OpenSave(save) => {
                 self.state = AppState::Loading;
-                Command::perform(smmdb_lib::Save::new(save.get_smm2_location()), move |res| {
-                    match res {
-                        Ok(smmdb_save) => {
-                            Message::LoadSave(smmdb_save, save.get_location().clone())
+                let display_name = save.get_display_name().clone();
+                Command::perform(
+                    async move {
+                        futures::join!(
+                            smmdb_lib::Save::new(save.get_location().clone()),
+                            future::ok::<String, String>(display_name)
+                        )
+                    },
+                    move |res| match res {
+                        (Ok(smmdb_save), Ok(display_name)) => {
+                            Message::LoadSave(smmdb_save, display_name)
                         }
-                        Err(err) => Message::LoadSaveError(err.into()),
-                    }
-                })
+                        (Err(err), _) => Message::LoadSaveError(err.into()),
+                        _ => todo!(),
+                    },
+                )
             }
             Message::OpenCustomSave => {
                 self.state = AppState::Loading;
@@ -122,9 +131,10 @@ impl Application for App {
                             let file_path: PathBuf = file_path.into();
                             Command::perform(smmdb_lib::Save::new(file_path.clone()), move |res| {
                                 match res {
-                                    Ok(smmdb_save) => {
-                                        Message::LoadSave(smmdb_save, file_path.clone())
-                                    }
+                                    Ok(smmdb_save) => Message::LoadSave(
+                                        smmdb_save,
+                                        file_path.clone().to_string_lossy().into(),
+                                    ),
                                     Err(err) => Message::LoadSaveError(err.into()),
                                 }
                             })
@@ -143,9 +153,9 @@ impl Application for App {
                     }),
                 }
             }
-            Message::LoadSave(smmdb_save, location) => {
+            Message::LoadSave(smmdb_save, display_name) => {
                 self.state = AppState::Default;
-                self.current_page = Page::Save(SavePage::new(smmdb_save, location));
+                self.current_page = Page::Save(SavePage::new(smmdb_save, display_name));
                 Command::none()
             }
             Message::LoadSaveError(err) => {
