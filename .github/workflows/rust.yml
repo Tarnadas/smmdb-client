@@ -53,6 +53,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit: ${{ github.sha }}
+          tag: ${{ github.job }}
           name: Release ${{ github.job }}
           artifacts: "target/release/smmdb-client-linux.tar.gz,target/x86_64-pc-windows-gnu/release/smmdb-client-windows.tar.gz"
           draft: true
@@ -89,6 +90,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit: ${{ github.sha }}
+          tag: ${{ github.job }}
           name: Release ${{ github.job }}
           artifacts: "target/release/smmdb-client-macos.tar.gz"
           draft: true
