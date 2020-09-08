@@ -24,6 +24,10 @@ jobs:
         with:
           toolchain: nightly-2020-08-23
           override: true
+      - name: Set environment variables
+        run: |
+          export LIB_VERSION=$(cat Cargo.toml | grep version | head -1 | sed 's/[",(version = )]//g') && \
+          export GZIP=-9
       - name: Check
         uses: actions-rs/cargo@v1
         with:
@@ -41,7 +45,6 @@ jobs:
           args: --release --target=x86_64-pc-windows-gnu
       - name: Compress releases
         run: |
-          export GZIP=-9 && \
           cd target/release && \
           tar czvf smmdb-client-linux.tar.gz smmdb && \
           cd ../../target/x86_64-pc-windows-gnu/release && \
@@ -53,8 +56,8 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit: ${{ github.sha }}
-          tag: ${{ github.job }}
-          name: Release ${{ github.job }}
+          tag: ${{ github.sha }}
+          name: "Release ${{ env.LIB_VERSION }} [Run#: ${{ github.run_number }}]"
           artifacts: "target/release/smmdb-client-linux.tar.gz,target/x86_64-pc-windows-gnu/release/smmdb-client-windows.tar.gz"
           draft: true
           allowUpdates: true
@@ -69,6 +72,10 @@ jobs:
         with:
           toolchain: nightly-2020-08-23
           override: true
+      - name: Set environment variables
+        run: |
+          export LIB_VERSION=$(cat Cargo.toml | grep version | head -1 | sed 's/[",(version = )]//g') && \
+          export GZIP=-9
       - name: Check
         uses: actions-rs/cargo@v1
         with:
@@ -80,7 +87,6 @@ jobs:
           args: --release
       - name: Compress releases
         run: |
-          export GZIP=-9 && \
           cd target/release && \
           tar czvf smmdb-client-macos.tar.gz smmdb
       - name: Update Draft Release
@@ -90,8 +96,8 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit: ${{ github.sha }}
-          tag: ${{ github.job }}
-          name: Release ${{ github.job }}
+          tag: ${{ github.sha }}
+          name: "Release ${{ env.LIB_VERSION }} [Run#: ${{ github.run_number }}]"
           artifacts: "target/release/smmdb-client-macos.tar.gz"
           draft: true
           allowUpdates: true
