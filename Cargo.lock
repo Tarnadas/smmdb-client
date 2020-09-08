@@ -1199,12 +1199,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "gcc"
-version = "0.3.55"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8f5f3913fa0bfe7ee1fd8248b6b9f42a5af4b9d65ec2dd2c3c26132b950ecfc2"
-
-[[package]]
 name = "generic-array"
 version = "0.14.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2165,11 +2159,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "nfd"
-version = "0.0.4"
-source = "git+https://github.com/saurvs/nfd-rs.git#07578c5fea4d7b1f35fbf128f04b6264c3bf3c5a"
+name = "nfd2"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0ac3db0bc756658680499145064b43b6bfc0e22ffeb2831927a4348c8b629f96"
 dependencies = [
- "gcc",
+ "cc",
 ]
 
 [[package]]
@@ -3185,7 +3180,7 @@ dependencies = [
  "image",
  "indexmap",
  "lazy_static",
- "nfd",
+ "nfd2",
  "reqwest",
  "serde",
  "serde_json",
