@@ -50,7 +50,7 @@ jobs:
           commit: ${{ github.sha }}
           tag: ${{ github.sha }}
           name: "SMMDB Client ${{ env.LIB_VERSION }} [Run#: ${{ github.run_number }}]"
-          artifacts: "target/release/smmdb-client-linux.tar.gz,target/x86_64-pc-windows-gnu/release/smmdb-client-windows.tar.gz"
+          artifacts: "target/release/smmdb-client-linux.tar.gz"
           draft: true
           allowUpdates: true
 
@@ -78,7 +78,7 @@ jobs:
         with:
           command: build
           args: --release
-      - name: Compress releases
+      - name: Compress release
         run: |
           cd target/release && \
           tar czvf smmdb-client-windows.tar.gz smmdb.exe
@@ -92,7 +92,7 @@ jobs:
           commit: ${{ github.sha }}
           tag: ${{ github.sha }}
           name: "SMMDB Client ${{ env.LIB_VERSION }} [Run#: ${{ github.run_number }}]"
-          artifacts: "target/release/smmdb-client-linux.tar.gz,target/x86_64-pc-windows-gnu/release/smmdb-client-windows.tar.gz"
+          artifacts: "target/release/smmdb-client-windows.tar.gz"
           draft: true
           allowUpdates: true
 
