@@ -73,15 +73,9 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: check
-      - name: Build Linux
+      - name: Build
         uses: actions-rs/cargo@v1
         with:
-          command: build
-          args: --release
-      - name: Build Windows
-        uses: actions-rs/cargo@v1
-        with:
-          use-cross: true
           command: build
           args: --release
       - name: Compress releases
