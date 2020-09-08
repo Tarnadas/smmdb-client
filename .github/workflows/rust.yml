@@ -43,16 +43,53 @@ jobs:
         run: |
           export GZIP=-9 && \
           cd target/release && \
-          tar czvf smmdb-client-linux.tar.gz smmdb
+          tar czvf smmdb-client-linux.tar.gz smmdb && \
           cd ../../target/x86_64-pc-windows-gnu/release && \
           tar czvf smmdb-client-windows.tar.gz smmdb.exe
-      - name: Create Draft Release
+      - name: Update Draft Release
         uses: ncipollo/release-action@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ github.sha }}
+          commit: ${{ github.sha }}
           name: Release ${{ github.job }}
           artifacts: "target/release/smmdb-client-linux.tar.gz,target/x86_64-pc-windows-gnu/release/smmdb-client-windows.tar.gz"
           draft: true
+          allowUpdates: true
+
+  build-macos:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install nightly
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly-2020-08-23
+          override: true
+      - name: Check
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+      - name: Compress releases
+        run: |
+          export GZIP=-9 && \
+          cd target/release && \
+          tar czvf smmdb-client-macos.tar.gz smmdb
+      - name: Update Draft Release
+        uses: ncipollo/release-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit: ${{ github.sha }}
+          name: Release ${{ github.job }}
+          artifacts: "target/release/smmdb-client-macos.tar.gz"
+          draft: true
+          allowUpdates: true
