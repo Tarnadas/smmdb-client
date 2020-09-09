@@ -48,6 +48,6 @@ fn main() -> Result<()> {
         ..Settings::default()
     };
 
-    App::run(settings);
+    App::run(settings).unwrap();
     Ok(())
 }
