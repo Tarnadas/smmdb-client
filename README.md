@@ -11,7 +11,7 @@ For planned features, please visit the [Github issue page](https://github.com/Ta
 
 ## Install
 
-You can download Windows and Linux binaries in the [Github release section](https://github.com/Tarnadas/smmdb-client/releases)
+You can download Windows, Linux and MacOS binaries in the [Github release section](https://github.com/Tarnadas/smmdb-client/releases)
 
 ### via Cargo
 
@@ -19,5 +19,4 @@ You can install SMMDB Client via Cargo:
 
 `cargo install --git https://github.com/Tarnadas/smmdb-client.git`
 
-This will also work on Mac.
 It is recommended to install Cargo via [Rustup](https://rustup.rs/)
