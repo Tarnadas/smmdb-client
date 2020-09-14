@@ -308,6 +308,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "brotli-sys"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4445dea95f4c2b41cde57cc9fee236ae4dbae88d8fcbdb4750fc1bb5d86aaecd"
+dependencies = [
+ "cc",
+ "libc",
+]
+
+[[package]]
+name = "brotli2"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0cb036c3eade309815c15ddbacec5b22c4d1f3983a774ab2eac2e3e9ea85568e"
+dependencies = [
+ "brotli-sys",
+ "libc",
+]
+
+[[package]]
 name = "build_const"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -510,6 +530,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "30ed07550be01594c6026cff2a1d7fe9c8f683caa798e12b68694ac9e88286a3"
 dependencies = [
  "cache-padded",
+]
+
+[[package]]
+name = "console_error_panic_hook"
+version = "0.1.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b8d976903543e0c48546a91908f21588a680a8c8f984df9a5d69feccb2b2a211"
+dependencies = [
+ "cfg-if",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -3144,7 +3174,7 @@ dependencies = [
 
 [[package]]
 name = "smmdb"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "dirs 3.0.1",
@@ -3161,29 +3191,32 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_qs",
- "smmdb 1.1.0",
+ "smmdb 1.2.0",
 ]
 
 [[package]]
 name = "smmdb"
-version = "1.1.0"
+version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "25d66037be9805ee1f62385d5f725ccc427427b3e30c30615cee10ff1131af5f"
+checksum = "f393c0396eb266dbb6c6e7e806fbcfcea3d8cc130a95f221b7fb7a37dcd9d1f6"
 dependencies = [
  "aes-soft",
  "arr_macro",
  "arrayref",
  "async-std",
  "block-modes",
+ "brotli2",
  "byteorder",
  "bytes",
  "cfg-if",
  "chrono",
  "cmac",
+ "console_error_panic_hook",
  "crc",
  "image",
  "infer",
  "itertools",
+ "js-sys",
  "protobuf",
  "protobuf-codegen-pure",
  "rand",
@@ -3193,6 +3226,8 @@ dependencies = [
  "tar",
  "thiserror",
  "typenum",
+ "wasm-bindgen",
+ "web-sys",
  "zip",
 ]
 
