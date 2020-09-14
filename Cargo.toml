@@ -9,9 +9,9 @@ anyhow = "1"
 dirs = "3.0"
 env_logger = "0.7"
 futures = "0.3"
-iced = { git = "https://github.com/Tarnadas/iced.git", commit = "ae6e007", features = [ "image", "svg", "tokio" ] }
-iced_native = { git = "https://github.com/Tarnadas/iced.git", commit = "ae6e007" }
-iced_wgpu = { git = "https://github.com/Tarnadas/iced.git", commit = "ae6e007" }
+iced = { git = "https://github.com/Tarnadas/iced.git", commit = "ae6e007f0c50b7944bee6d367c3cf0123374f166", features = [ "image", "svg", "tokio" ] }
+iced_native = { git = "https://github.com/Tarnadas/iced.git", commit = "ae6e007f0c50b7944bee6d367c3cf0123374f166" }
+iced_wgpu = { git = "https://github.com/Tarnadas/iced.git", commit = "ae6e007f0c50b7944bee6d367c3cf0123374f166" }
 image = "0.23"
 indexmap = "1.6"
 lazy_static = "1"
