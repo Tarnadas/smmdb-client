@@ -43,6 +43,7 @@ fn main() -> Result<()> {
         ..window::Settings::default()
     };
     let settings = Settings {
+        antialiasing: true,
         window,
         default_font: Some(font::DEFAULT_FONT_BYTES),
         ..Settings::default()
