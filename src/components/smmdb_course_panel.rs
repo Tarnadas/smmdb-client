@@ -9,6 +9,8 @@ use iced_native::widget::image::Handle;
 #[derive(Debug)]
 pub struct SmmdbCoursePanel {
     panel_state: button::State,
+    upvote_state: button::State,
+    downvote_state: button::State,
     course: Course2Response,
     thumbnail: Option<Vec<u8>>,
 }
@@ -17,6 +19,8 @@ impl SmmdbCoursePanel {
     pub fn new(course: Course2Response) -> SmmdbCoursePanel {
         SmmdbCoursePanel {
             panel_state: button::State::new(),
+            upvote_state: button::State::new(),
+            downvote_state: button::State::new(),
             course,
             thumbnail: None,
         }
@@ -61,23 +65,46 @@ impl SmmdbCoursePanel {
             None => Space::with_height(Length::Shrink).into(),
         };
 
+        let mut upvote =
+            Button::new(&mut self.upvote_state, Text::new("↑")).style(DefaultButtonStyle);
+        upvote = match self.course.get_own_vote() {
+            n if n != 0 => upvote.on_press(Message::ResetCourseVote(self.course.get_id().clone())),
+            _ => upvote.on_press(Message::UpvoteCourse(self.course.get_id().clone())),
+        };
+        let mut downvote =
+            Button::new(&mut self.downvote_state, Text::new("↓")).style(DefaultButtonStyle);
+        downvote = match self.course.get_own_vote() {
+            n if n != 0 => {
+                downvote.on_press(Message::ResetCourseVote(self.course.get_id().clone()))
+            }
+            _ => downvote.on_press(Message::DownvoteCourse(self.course.get_id().clone())),
+        };
+
+        let voting_content = Column::new()
+            .width(Length::Units(24))
+            .align_items(Align::Center)
+            .push(upvote)
+            .push(Space::with_height(Length::Units(16)))
+            .push(Text::new(format!("{}", self.course.get_votes())))
+            .push(Space::with_height(Length::Units(16)))
+            .push(downvote);
+
+        let inner_content = Row::new()
+            .push(voting_content)
+            .push(Container::new(thumbnail).style(ThumbnailStyle))
+            .push(Space::with_width(Length::Units(10)))
+            .push(
+                Column::new()
+                    .push(Text::new(format!("{}", course_header.get_description())).size(15))
+                    .push(Space::with_height(Length::Units(LIST_SPACING)))
+                    .push(difficulty),
+            )
+            .align_items(Align::Center);
+
         let content = Column::new()
             .push(Text::new(format!("{}", course_header.get_title())).size(24))
             .push(Space::with_height(Length::Units(10)))
-            .push(
-                Row::new()
-                    .push(Container::new(thumbnail).style(ThumbnailStyle))
-                    .push(Space::with_width(Length::Units(10)))
-                    .push(
-                        Column::new()
-                            .push(
-                                Text::new(format!("{}", course_header.get_description())).size(15),
-                            )
-                            .push(Space::with_height(Length::Units(LIST_SPACING)))
-                            .push(difficulty),
-                    )
-                    .align_items(Align::Center),
-            );
+            .push(inner_content);
 
         match state {
             AppState::DownloadSelect(index) => Button::new(&mut self.panel_state, content)

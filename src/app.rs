@@ -61,6 +61,9 @@ pub enum Message {
     ApplyFilters,
     PaginateForward,
     PaginateBackward,
+    UpvoteCourse(String),
+    DownvoteCourse(String),
+    ResetCourseVote(String),
     ResetState,
 }
 
@@ -332,6 +335,18 @@ impl Application for App {
                         Err(err) => Message::FetchError(err.to_string()),
                     },
                 )
+            }
+            Message::UpvoteCourse(course_id) => {
+                // TODO
+                Command::none()
+            }
+            Message::DownvoteCourse(course_id) => {
+                // TODO
+                Command::none()
+            }
+            Message::ResetCourseVote(course_id) => {
+                // TODO
+                Command::none()
             }
             Message::ResetState => {
                 self.state = AppState::Default;

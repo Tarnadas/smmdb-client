@@ -99,7 +99,7 @@ impl Smmdb {
         let qs = serde_qs::to_string(&query_params)
             .map_err(|err| io::Error::new(ErrorKind::Other, err.to_string()))?;
         let body = Client::new()
-            .get(&format!("https://api.smmdb.net/courses2?{}", qs))
+            .get(&format!("http://localhost:3030/courses2?{}", qs))
             .send()
             .await?
             .text()
@@ -111,7 +111,7 @@ impl Smmdb {
     pub async fn fetch_thumbnail(id: String) -> Result<Vec<u8>> {
         let bytes = Client::new()
             .get(&format!(
-                "https://api.smmdb.net/courses2/thumbnail/{}?size=m",
+                "http://localhost:3030/courses2/thumbnail/{}?size=m",
                 id
             ))
             .send()
@@ -123,7 +123,7 @@ impl Smmdb {
 
     pub fn download_course(id: String) -> Subscription<Progress> {
         Subscription::from_recipe(Download {
-            url: format!("https://api.smmdb.net/courses2/download/{}", id),
+            url: format!("http://localhost:3030/courses2/download/{}", id),
         })
     }
 }
@@ -138,12 +138,22 @@ pub struct Course2Response {
     difficulty: Option<Difficulty>,
     last_modified: i64,
     uploaded: i64,
+    votes: i32,
+    own_vote: Option<i32>,
     course: SMM2Course,
 }
 
 impl Course2Response {
     pub fn get_id(&self) -> &String {
         &self.id
+    }
+
+    pub fn get_votes(&self) -> i32 {
+        self.votes
+    }
+
+    pub fn get_own_vote(&self) -> i32 {
+        self.votes
     }
 
     pub fn get_course(&self) -> &SMM2Course {
