@@ -5,6 +5,7 @@ use iced::{
     Row, Scrollable, Space, Text, TextInput,
 };
 
+#[derive(Clone, Debug)]
 pub struct SmmdbWidget {
     state: scrollable::State,
     title_state: text_input::State,

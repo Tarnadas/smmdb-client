@@ -3,7 +3,7 @@ use crate::{components::SmmdbCoursePanel, Download, Progress};
 use anyhow::Result;
 use iced::Subscription;
 use indexmap::IndexMap;
-use reqwest::Client;
+use reqwest::{header, Client};
 use serde::{Deserialize, Serialize};
 use smmdb_lib::proto::SMM2Course::SMM2Course;
 use std::{
@@ -14,14 +14,16 @@ use std::{
 #[derive(Debug)]
 pub struct Smmdb {
     client: Client,
+    apikey: Option<String>,
     query_params: QueryParams,
     course_panels: IndexMap<String, SmmdbCoursePanel>,
 }
 
 impl Smmdb {
-    pub fn new() -> Smmdb {
+    pub fn new(apikey: Option<String>) -> Smmdb {
         Smmdb {
             client: Client::new(),
+            apikey,
             query_params: serde_json::from_str::<QueryParams>("{}").unwrap(),
             course_panels: IndexMap::new(),
         }
@@ -95,6 +97,10 @@ impl Smmdb {
         }
     }
 
+    pub fn set_apikey(&mut self, apikey: String) {
+        self.apikey = Some(apikey);
+    }
+
     pub async fn update(query_params: QueryParams) -> Result<Vec<Course2Response>> {
         let qs = serde_qs::to_string(&query_params)
             .map_err(|err| io::Error::new(ErrorKind::Other, err.to_string()))?;
@@ -125,6 +131,24 @@ impl Smmdb {
         Subscription::from_recipe(Download {
             url: format!("http://localhost:3030/courses2/download/{}", id),
         })
+    }
+
+    pub async fn try_sign_in(apikey: String) -> std::result::Result<(), String> {
+        match Client::new()
+            .post("http://localhost:3030/login")
+            .header(header::AUTHORIZATION, &format!("APIKEY {}", apikey))
+            .send()
+            .await
+        {
+            Ok(response) => {
+                if response.status().is_success() {
+                    Ok(())
+                } else {
+                    Err("Could not sign in! Your API key seems to be wrong.".to_string())
+                }
+            }
+            Err(err) => Err(err.to_string()),
+        }
     }
 }
 

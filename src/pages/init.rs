@@ -1,7 +1,8 @@
-use crate::{components::SaveButton, font::*, styles::*, AppState, Message};
+use crate::{components::SaveButton, font::*, styles::*, AppErrorState, AppState, Message};
 
 use iced::{button, Button, Column, Element, Length, Space, Text};
 
+#[derive(Clone, Debug)]
 pub struct InitPage {
     open_custom_save: button::State,
     save_buttons: Vec<SaveButton>,
@@ -17,7 +18,11 @@ impl InitPage {
 }
 
 impl InitPage {
-    pub fn view<'a>(&'a mut self, state: &AppState) -> Element<crate::Message> {
+    pub fn view<'a>(
+        &'a mut self,
+        state: &AppState,
+        error_state: &AppErrorState,
+    ) -> Element<crate::Message> {
         let mut content = self.save_buttons.iter_mut().fold(
             Column::new()
                 .padding(CONTAINER_PADDING)
@@ -37,7 +42,7 @@ impl InitPage {
         };
         content = content.push(custom_save_button);
 
-        content = if let AppState::Errored(err) = state {
+        content = if let AppErrorState::Some(err) = error_state {
             content.push(Space::with_height(Length::Units(16))).push(
                 Text::new(err)
                     .font(HELVETICA_BOLD)

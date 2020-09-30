@@ -6,6 +6,7 @@ use crate::{
 use anyhow::Result;
 use iced::{Element, Row};
 
+#[derive(Clone, Debug)]
 pub struct SavePage {
     save: smmdb_lib::Save,
     display_name: String,

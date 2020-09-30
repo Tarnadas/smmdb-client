@@ -8,21 +8,23 @@ mod emu;
 mod font;
 mod icon;
 mod pages;
+mod settings;
 mod smmdb;
 mod styles;
 mod widgets;
 
-pub use app::{AppState, Message};
+pub use app::{AppErrorState, AppState, Message};
 pub use download::{Download, Progress};
 pub use emu::{EmuSave, EmuType};
 pub use pages::Page;
+pub use settings::Settings;
 pub use smmdb::Smmdb;
 
 use anyhow::Result;
 
 fn main() -> Result<()> {
     use app::*;
-    use iced::{window, Application, Settings};
+    use iced::{window, Application};
 
     let icon = match image::load_from_memory(include_bytes!("../assets/icons/icon.png")) {
         Ok(buffer) => {
@@ -42,11 +44,11 @@ fn main() -> Result<()> {
         icon,
         ..window::Settings::default()
     };
-    let settings = Settings {
+    let settings = iced::Settings {
         antialiasing: true,
         window,
         default_font: Some(font::DEFAULT_FONT_BYTES),
-        ..Settings::default()
+        ..iced::Settings::default()
     };
 
     App::run(settings).unwrap();

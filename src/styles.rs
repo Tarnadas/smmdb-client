@@ -42,6 +42,9 @@ pub const TEXT_INPUT_PLACEHOLDER_COLOR: Color = COLOR_GRAY;
 pub const TEXT_INPUT_VALUE_COLOR: Color = Color::BLACK;
 pub const TEXT_INPUT_SELECTION_COLOR: Color = COLOR_LIGHT_GREEN;
 
+// Text
+pub const TEXT_HELP_COLOR: Color = COLOR_GRAY;
+
 // PickList
 pub const PICK_LIST_MENU: Background = Background::Color(Color::WHITE);
 pub const PICK_LIST_ACTIVE: Background = Background::Color(Color::WHITE);
@@ -62,6 +65,26 @@ impl button::StyleSheet for DefaultButtonStyle {
     fn hovered(&self) -> button::Style {
         button::Style {
             background: Some(BUTTON_HOVER),
+            border_radius: 4,
+            ..button::Style::default()
+        }
+    }
+}
+
+pub struct DefaultButtonDangerStyle;
+
+impl button::StyleSheet for DefaultButtonDangerStyle {
+    fn active(&self) -> button::Style {
+        button::Style {
+            background: Some(BUTTON_ACTIVE),
+            border_radius: 4,
+            ..button::Style::default()
+        }
+    }
+
+    fn hovered(&self) -> button::Style {
+        button::Style {
+            background: Some(BUTTON_DANGER),
             border_radius: 4,
             ..button::Style::default()
         }

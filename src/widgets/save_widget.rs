@@ -2,6 +2,7 @@ use crate::{components::CoursePanel, font, styles::*, AppState};
 
 use iced::{scrollable, Element, Length, Scrollable, Text};
 
+#[derive(Clone, Debug)]
 pub struct SaveWidget {
     state: scrollable::State,
     course_panels: Vec<CoursePanel>,

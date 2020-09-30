@@ -10,6 +10,9 @@ lazy_static! {
     pub static ref DELETE: Svg = Svg::new(svg::Handle::from_memory(
         include_bytes!("../assets/icons/delete.svg").to_vec(),
     ));
+    pub static ref SETTINGS: Svg = Svg::new(svg::Handle::from_memory(
+        include_bytes!("../assets/icons/settings.svg").to_vec(),
+    ));
     pub static ref EASY: image::Handle =
         image::Handle::from_memory(include_bytes!("../assets/icons/easy.png").to_vec(),);
     pub static ref NORMAL: image::Handle =

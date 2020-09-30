@@ -1,14 +1,16 @@
 use crate::{
     emu::*,
-    pages::{InitPage, SavePage},
+    icon,
+    pages::{InitPage, SavePage, SettingsPage},
     smmdb::{Course2Response, Difficulty, QueryParams},
     styles::*,
-    EmuSave, Page, Progress, Smmdb,
+    EmuSave, Page, Progress, Settings, Smmdb,
 };
 
 use futures::future;
 use iced::{
-    container, executor, Application, Background, Command, Container, Element, Length, Subscription,
+    button, container, executor, Application, Background, Button, Column, Command, Container,
+    Element, Length, Row, Space, Subscription,
 };
 use iced_native::{keyboard, subscription, Event};
 use nfd::Response;
@@ -16,15 +18,17 @@ use std::{convert::TryInto, path::PathBuf};
 
 pub struct App {
     state: AppState,
+    error_state: AppErrorState,
+    settings: Settings,
     current_page: Page,
     smmdb: Smmdb,
     window_size: WindowSize,
+    settings_button: button::State,
 }
 
 #[derive(Clone, Debug)]
 pub enum AppState {
     Default,
-    Errored(String),
     Loading,
     SwapSelect(usize),
     DownloadSelect(usize),
@@ -34,6 +38,12 @@ pub enum AppState {
         smmdb_id: String,
         progress: f32,
     },
+}
+
+#[derive(Clone, Debug)]
+pub enum AppErrorState {
+    Some(String),
+    None,
 }
 
 #[derive(Clone, Debug)]
@@ -64,6 +74,12 @@ pub enum Message {
     UpvoteCourse(String),
     DownvoteCourse(String),
     ResetCourseVote(String),
+    OpenSettings,
+    TrySaveSettings(Settings),
+    SaveSettings(Settings),
+    RejectSettings(String),
+    CloseSettings,
+    ChangeApiKey(String),
     ResetState,
 }
 
@@ -80,14 +96,18 @@ impl Application for App {
 
     fn new(_flags: ()) -> (App, Command<Self::Message>) {
         let components = guess_emu_dir().unwrap();
-        let smmdb = Smmdb::new();
+        let settings = Settings::load().unwrap();
+        let smmdb = Smmdb::new(settings.apikey.clone());
         let query_params = smmdb.get_query_params().clone();
         (
             App {
                 state: AppState::Default,
+                error_state: AppErrorState::None,
+                settings,
                 current_page: Page::Init(InitPage::new(components)),
                 smmdb,
                 window_size: WindowSize::M,
+                settings_button: button::State::new(),
             },
             Command::perform(async {}, move |_| {
                 Message::FetchCourses(query_params.clone())
@@ -158,13 +178,14 @@ impl Application for App {
             }
             Message::LoadSave(smmdb_save, display_name) => {
                 self.state = AppState::Default;
+                self.error_state = AppErrorState::None;
                 self.current_page = Page::Save(SavePage::new(smmdb_save, display_name));
                 Command::none()
             }
             Message::LoadSaveError(err) => {
                 eprintln!("{}", &err);
-                self.state =
-                    AppState::Errored(format!("Could not load save file. Full error:\n{}", err));
+                self.error_state =
+                    AppErrorState::Some(format!("Could not load save file. Full error:\n{}", err));
                 Command::none()
             }
             Message::FetchCourses(query_params) => {
@@ -175,11 +196,12 @@ impl Application for App {
             }
             Message::FetchError(err) => {
                 dbg!(&err);
-                self.state = AppState::Errored(err);
+                self.error_state = AppErrorState::Some(err);
                 Command::none()
             }
             Message::SetSmmdbCourses(courses) => {
                 self.state = AppState::Default;
+                self.error_state = AppErrorState::None;
                 self.smmdb.set_courses(courses);
                 let course_ids: Vec<String> =
                     self.smmdb.get_course_panels().keys().cloned().collect();
@@ -348,8 +370,59 @@ impl Application for App {
                 // TODO
                 Command::none()
             }
+            Message::OpenSettings => {
+                if let Page::Settings(_) = self.current_page {
+                } else {
+                    self.current_page = Page::Settings(SettingsPage::new(
+                        self.settings.clone(),
+                        self.current_page.clone(),
+                    ));
+                }
+                Command::none()
+            }
+            Message::TrySaveSettings(settings) => {
+                settings.save().unwrap();
+                match &settings.apikey {
+                    Some(apikey) => {
+                        Command::perform(Smmdb::try_sign_in(apikey.clone()), move |res| match res {
+                            Ok(_) => Message::SaveSettings(settings.clone()),
+                            Err(err) => Message::RejectSettings(err),
+                        })
+                    }
+                    None => {
+                        Command::perform(async {}, move |_| Message::SaveSettings(settings.clone()))
+                    }
+                }
+            }
+            Message::SaveSettings(settings) => {
+                settings.save().unwrap();
+                self.settings = settings;
+                if let Page::Settings(ref mut settings_page) = self.current_page {
+                    self.current_page = settings_page.get_prev_page()
+                }
+                self.error_state = AppErrorState::None;
+                Command::none()
+            }
+            Message::RejectSettings(err) => {
+                self.error_state = AppErrorState::Some(err);
+                Command::none()
+            }
+            Message::CloseSettings => {
+                if let Page::Settings(ref mut settings_page) = self.current_page {
+                    self.current_page = settings_page.get_prev_page()
+                }
+                self.error_state = AppErrorState::None;
+                Command::none()
+            }
+            Message::ChangeApiKey(apikey) => {
+                if let Page::Settings(ref mut settings_page) = self.current_page {
+                    settings_page.set_apikey(apikey);
+                }
+                Command::none()
+            }
             Message::ResetState => {
                 self.state = AppState::Default;
+                self.error_state = AppErrorState::None;
                 Command::none()
             }
         }
@@ -369,15 +442,35 @@ impl Application for App {
             AppState::Downloading { smmdb_id, .. } => {
                 Smmdb::download_course(smmdb_id.clone()).map(Message::DownloadProgressed)
             }
-            AppState::Default | AppState::Errored(_) | AppState::Loading => Subscription::none(),
+            AppState::Default | AppState::Loading => Subscription::none(),
         }
     }
 
     fn view(&mut self) -> Element<Self::Message> {
-        Container::new(match &mut self.current_page {
-            Page::Init(init_page) => init_page.view(&self.state).into(),
-            Page::Save(save_page) => save_page.view(&self.state, &mut self.smmdb),
-        })
+        Container::new(
+            Column::new()
+                .push(
+                    Row::new()
+                        .push(Space::with_width(Length::Fill))
+                        .push(
+                            Button::new(
+                                &mut self.settings_button,
+                                icon::SETTINGS
+                                    .clone()
+                                    .width(Length::Units(24))
+                                    .height(Length::Units(24)),
+                            )
+                            .style(DefaultButtonStyle)
+                            .on_press(Message::OpenSettings),
+                        )
+                        .padding(12),
+                )
+                .push(match &mut self.current_page {
+                    Page::Init(init_page) => init_page.view(&self.state, &self.error_state),
+                    Page::Save(save_page) => save_page.view(&self.state, &mut self.smmdb),
+                    Page::Settings(settings_page) => settings_page.view(&self.error_state),
+                }),
+        )
         .style(AppStyle)
         .width(Length::Fill)
         .height(Length::Fill)
