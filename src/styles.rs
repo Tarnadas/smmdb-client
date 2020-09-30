@@ -44,6 +44,8 @@ pub const TEXT_INPUT_SELECTION_COLOR: Color = COLOR_LIGHT_GREEN;
 
 // Text
 pub const TEXT_HELP_COLOR: Color = COLOR_GRAY;
+pub const TEXT_HIGHLIGHT_COLOR: Color = COLOR_GREEN;
+pub const TEXT_DANGER_COLOR: Color = COLOR_RED;
 
 // PickList
 pub const PICK_LIST_MENU: Background = Background::Color(Color::WHITE);

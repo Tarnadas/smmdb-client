@@ -13,6 +13,18 @@ lazy_static! {
     pub static ref SETTINGS: Svg = Svg::new(svg::Handle::from_memory(
         include_bytes!("../assets/icons/settings.svg").to_vec(),
     ));
+    pub static ref DOWN_ARROW: Svg = Svg::new(svg::Handle::from_memory(
+        include_bytes!("../assets/icons/down_arrow.svg").to_vec(),
+    ));
+    pub static ref DOWN_ARROW_RED: Svg = Svg::new(svg::Handle::from_memory(
+        include_bytes!("../assets/icons/down_arrow_red.svg").to_vec(),
+    ));
+    pub static ref UP_ARROW: Svg = Svg::new(svg::Handle::from_memory(
+        include_bytes!("../assets/icons/up_arrow.svg").to_vec(),
+    ));
+    pub static ref UP_ARROW_GREEN: Svg = Svg::new(svg::Handle::from_memory(
+        include_bytes!("../assets/icons/up_arrow_green.svg").to_vec(),
+    ));
     pub static ref EASY: image::Handle =
         image::Handle::from_memory(include_bytes!("../assets/icons/easy.png").to_vec(),);
     pub static ref NORMAL: image::Handle =

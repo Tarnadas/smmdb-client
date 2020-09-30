@@ -101,15 +101,24 @@ impl Smmdb {
         self.apikey = Some(apikey);
     }
 
-    pub async fn update(query_params: QueryParams) -> Result<Vec<Course2Response>> {
+    pub fn set_own_vote(&mut self, course_id: String, value: i32) {
+        if let Some(course) = self.course_panels.get_mut(&course_id) {
+            course.set_own_vote(value);
+        }
+    }
+
+    pub async fn update(
+        query_params: QueryParams,
+        apikey: Option<String>,
+    ) -> Result<Vec<Course2Response>> {
         let qs = serde_qs::to_string(&query_params)
             .map_err(|err| io::Error::new(ErrorKind::Other, err.to_string()))?;
-        let body = Client::new()
-            .get(&format!("http://localhost:3030/courses2?{}", qs))
-            .send()
-            .await?
-            .text()
-            .await?;
+        let mut client = Client::new().get(&format!("http://localhost:3030/courses2?{}", qs));
+        if let Some(apikey) = apikey {
+            client = client.header(header::AUTHORIZATION, &format!("APIKEY {}", apikey));
+        }
+
+        let body = client.send().await?.text().await?;
         let response: Vec<Course2Response> = serde_json::from_str(&body)?;
         Ok(response)
     }
@@ -150,6 +159,34 @@ impl Smmdb {
             Err(err) => Err(err.to_string()),
         }
     }
+
+    pub async fn vote(
+        course_id: String,
+        value: i32,
+        apikey: String,
+    ) -> std::result::Result<(), String> {
+        let body = serde_json::to_string(&VoteBody { value }).map_err(|err| err.to_string())?;
+        match Client::new()
+            .post(&format!(
+                "http://localhost:3030/courses2/vote/{}",
+                course_id
+            ))
+            .header(header::AUTHORIZATION, &format!("APIKEY {}", apikey))
+            .header(header::CONTENT_TYPE, "application/json")
+            .body(body)
+            .send()
+            .await
+        {
+            Ok(response) => {
+                if response.status().is_success() {
+                    Ok(())
+                } else {
+                    Err("Could not sign in! Your API key seems to be wrong.".to_string())
+                }
+            }
+            Err(err) => Err(err.to_string()),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -163,7 +200,8 @@ pub struct Course2Response {
     last_modified: i64,
     uploaded: i64,
     votes: i32,
-    own_vote: Option<i32>,
+    #[serde(default)]
+    own_vote: i32,
     course: SMM2Course,
 }
 
@@ -177,7 +215,13 @@ impl Course2Response {
     }
 
     pub fn get_own_vote(&self) -> i32 {
-        self.votes
+        self.own_vote
+    }
+
+    pub fn set_own_vote(&mut self, value: i32) {
+        let diff = value - self.own_vote;
+        self.votes = self.votes + diff;
+        self.own_vote = value;
     }
 
     pub fn get_course(&self) -> &SMM2Course {
@@ -247,6 +291,12 @@ pub struct QueryParams {
     sort: Option<Vec<Sort>>,
     #[serde(default)]
     difficulty: Option<Difficulty>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct VoteBody {
+    #[serde(default)]
+    pub value: i32,
 }
 
 impl QueryParams {

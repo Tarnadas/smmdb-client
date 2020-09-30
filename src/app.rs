@@ -74,6 +74,7 @@ pub enum Message {
     UpvoteCourse(String),
     DownvoteCourse(String),
     ResetCourseVote(String),
+    SetVoteCourse(String, i32),
     OpenSettings,
     TrySaveSettings(Settings),
     SaveSettings(Settings),
@@ -188,12 +189,13 @@ impl Application for App {
                     AppErrorState::Some(format!("Could not load save file. Full error:\n{}", err));
                 Command::none()
             }
-            Message::FetchCourses(query_params) => {
-                Command::perform(Smmdb::update(query_params), move |res| match res {
+            Message::FetchCourses(query_params) => Command::perform(
+                Smmdb::update(query_params, self.settings.apikey.clone()),
+                move |res| match res {
                     Ok(courses) => Message::SetSmmdbCourses(courses),
                     Err(err) => Message::FetchError(err.to_string()),
-                })
-            }
+                },
+            ),
             Message::FetchError(err) => {
                 dbg!(&err);
                 self.error_state = AppErrorState::Some(err);
@@ -329,7 +331,10 @@ impl Application for App {
                 self.state = AppState::Loading;
                 self.smmdb.reset_pagination();
                 Command::perform(
-                    Smmdb::update(self.smmdb.get_query_params().clone()),
+                    Smmdb::update(
+                        self.smmdb.get_query_params().clone(),
+                        self.settings.apikey.clone(),
+                    ),
                     move |res| match res {
                         Ok(courses) => Message::SetSmmdbCourses(courses),
                         Err(err) => Message::FetchError(err.to_string()),
@@ -340,7 +345,10 @@ impl Application for App {
                 self.state = AppState::Loading;
                 self.smmdb.paginate_forward();
                 Command::perform(
-                    Smmdb::update(self.smmdb.get_query_params().clone()),
+                    Smmdb::update(
+                        self.smmdb.get_query_params().clone(),
+                        self.settings.apikey.clone(),
+                    ),
                     move |res| match res {
                         Ok(courses) => Message::SetSmmdbCourses(courses),
                         Err(err) => Message::FetchError(err.to_string()),
@@ -351,7 +359,10 @@ impl Application for App {
                 self.state = AppState::Loading;
                 self.smmdb.paginate_backward();
                 Command::perform(
-                    Smmdb::update(self.smmdb.get_query_params().clone()),
+                    Smmdb::update(
+                        self.smmdb.get_query_params().clone(),
+                        self.settings.apikey.clone(),
+                    ),
                     move |res| match res {
                         Ok(courses) => Message::SetSmmdbCourses(courses),
                         Err(err) => Message::FetchError(err.to_string()),
@@ -359,15 +370,45 @@ impl Application for App {
                 )
             }
             Message::UpvoteCourse(course_id) => {
-                // TODO
-                Command::none()
+                if let Some(apikey) = self.settings.apikey.clone() {
+                    Command::perform(
+                        Smmdb::vote(course_id.clone(), 1, apikey),
+                        move |res| match res {
+                            Ok(()) => Message::SetVoteCourse(course_id.clone(), 1),
+                            Err(err) => Message::FetchError(err.to_string()),
+                        },
+                    )
+                } else {
+                    Command::none()
+                }
             }
             Message::DownvoteCourse(course_id) => {
-                // TODO
-                Command::none()
+                if let Some(apikey) = self.settings.apikey.clone() {
+                    Command::perform(Smmdb::vote(course_id.clone(), -1, apikey), move |res| {
+                        match res {
+                            Ok(()) => Message::SetVoteCourse(course_id.clone(), -1),
+                            Err(err) => Message::FetchError(err.to_string()),
+                        }
+                    })
+                } else {
+                    Command::none()
+                }
             }
             Message::ResetCourseVote(course_id) => {
-                // TODO
+                if let Some(apikey) = self.settings.apikey.clone() {
+                    Command::perform(
+                        Smmdb::vote(course_id.clone(), 0, apikey),
+                        move |res| match res {
+                            Ok(()) => Message::SetVoteCourse(course_id.clone(), 0),
+                            Err(err) => Message::FetchError(err.to_string()),
+                        },
+                    )
+                } else {
+                    Command::none()
+                }
+            }
+            Message::SetVoteCourse(course_id, value) => {
+                self.smmdb.set_own_vote(course_id, value);
                 Command::none()
             }
             Message::OpenSettings => {
