@@ -2,7 +2,7 @@ use crate::{
     emu::*,
     icon,
     pages::{InitPage, SavePage, SettingsPage},
-    smmdb::{Course2Response, Difficulty, QueryParams},
+    smmdb::{Course2Response, Difficulty, QueryParams, SortOptions},
     styles::*,
     EmuSave, Page, Progress, Settings, Smmdb,
 };
@@ -68,6 +68,7 @@ pub enum Message {
     TitleChanged(String),
     UploaderChanged(String),
     DifficultyChanged(Difficulty),
+    SortChanged(SortOptions),
     ApplyFilters,
     PaginateForward,
     PaginateBackward,
@@ -325,6 +326,10 @@ impl Application for App {
             }
             Message::DifficultyChanged(difficulty) => {
                 self.smmdb.set_difficulty(difficulty);
+                Command::none()
+            }
+            Message::SortChanged(sort) => {
+                self.smmdb.set_sort(sort);
                 Command::none()
             }
             Message::ApplyFilters => {

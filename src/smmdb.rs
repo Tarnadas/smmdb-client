@@ -97,6 +97,10 @@ impl Smmdb {
         }
     }
 
+    pub fn set_sort(&mut self, sort: SortOptions) {
+        self.query_params.sort = Some(sort);
+    }
+
     pub fn set_apikey(&mut self, apikey: String) {
         self.apikey = Some(apikey);
     }
@@ -288,7 +292,7 @@ pub struct QueryParams {
     #[serde(default)]
     uploader: Option<String>,
     #[serde(default)]
-    sort: Option<Vec<Sort>>,
+    sort: Option<SortOptions>,
     #[serde(default)]
     difficulty: Option<Difficulty>,
 }
@@ -316,6 +320,10 @@ impl QueryParams {
         }
     }
 
+    pub fn get_sort(&self) -> Option<SortOptions> {
+        self.sort.clone()
+    }
+
     pub fn get_difficulty(&self) -> Option<Difficulty> {
         self.difficulty.clone()
     }
@@ -329,8 +337,8 @@ fn is_true() -> bool {
     true
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
-struct Sort {
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+pub struct Sort {
     pub val: SortValue,
     dir: i32,
 }
@@ -344,10 +352,53 @@ impl Default for Sort {
     }
 }
 
-#[derive(Clone, Deserialize, Debug, PartialEq, Serialize)]
-enum SortValue {
+#[derive(Clone, Debug, Deserialize, Eq, Serialize)]
+pub struct SortOptions(Vec<Sort>);
+
+lazy_static! {
+    pub static ref SORT_OPTIONS: [SortOptions; 2] = [
+        SortOptions(vec![Sort {
+            val: SortValue::LastModified,
+            dir: -1,
+        }]),
+        SortOptions(vec![
+            Sort {
+                val: SortValue::Votes,
+                dir: -1,
+            },
+            Sort {
+                val: SortValue::LastModified,
+                dir: -1,
+            },
+        ]),
+    ];
+}
+
+impl fmt::Display for SortOptions {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.0.get(0).unwrap().val {
+            SortValue::LastModified => write!(f, "Last Modified"),
+            SortValue::Uploaded => write!(f, "Uploaded"),
+            SortValue::CourseHeaderTitle => write!(f, "Title"),
+            SortValue::Votes => write!(f, "Votes"),
+        }
+    }
+}
+
+impl PartialEq for SortOptions {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.eq(&other.0)
+    }
+}
+
+#[derive(Clone, Deserialize, Debug, Eq, PartialEq, Serialize)]
+pub enum SortValue {
     #[serde(rename = "last_modified")]
     LastModified,
     #[serde(rename = "uploaded")]
     Uploaded,
+    #[serde(rename = "course.header.title")]
+    CourseHeaderTitle,
+    #[serde(rename = "votes")]
+    Votes,
 }

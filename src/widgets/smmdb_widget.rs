@@ -1,4 +1,9 @@
-use crate::{font, smmdb::Difficulty, styles::*, AppState, Message, Smmdb};
+use crate::{
+    font,
+    smmdb::{Difficulty, SortOptions, SORT_OPTIONS},
+    styles::*,
+    AppState, Message, Smmdb,
+};
 
 use iced::{
     button, pick_list, scrollable, text_input, Align, Button, Column, Element, Length, PickList,
@@ -11,6 +16,7 @@ pub struct SmmdbWidget {
     title_state: text_input::State,
     uploader_state: text_input::State,
     difficulty_state: pick_list::State<Difficulty>,
+    sort_state: pick_list::State<SortOptions>,
     search_state: button::State,
     backward_state: button::State,
     forward_state: button::State,
@@ -23,6 +29,7 @@ impl SmmdbWidget {
             title_state: text_input::State::new(),
             uploader_state: text_input::State::new(),
             difficulty_state: pick_list::State::default(),
+            sort_state: pick_list::State::default(),
             search_state: button::State::new(),
             backward_state: button::State::new(),
             forward_state: button::State::new(),
@@ -60,16 +67,29 @@ impl SmmdbWidget {
         )
         .style(DefaultPickListStyle)
         .padding(4);
+        let sort_pick_list = PickList::new(
+            &mut self.sort_state,
+            &SORT_OPTIONS[..],
+            query_params.get_sort().clone(),
+            Message::SortChanged,
+        )
+        .style(DefaultPickListStyle)
+        .padding(4);
         let search_button = Button::new(&mut self.search_state, Text::new("Search"))
             .style(DefaultButtonStyle)
             .on_press(Message::ApplyFilters);
 
         let filter = Column::new()
+            .push(Text::new("Filters:").font(font::HELVETICA_BOLD).size(16))
             .push(title_text_input)
             .push(Space::with_height(Length::Units(4)))
             .push(uploader_text_input)
             .push(Space::with_height(Length::Units(4)))
             .push(difficulty_pick_list)
+            .push(Space::with_height(Length::Units(4)))
+            .push(Space::with_height(Length::Units(8)))
+            .push(Text::new("Sort by:").font(font::HELVETICA_BOLD).size(16))
+            .push(sort_pick_list)
             .push(Space::with_height(Length::Units(4)))
             .push(search_button);
 
