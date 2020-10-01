@@ -1,4 +1,4 @@
-use crate::{font::*, icon, styles::*, AppState, Message};
+use crate::{font::*, icon, smmdb::Course2Response, styles::*, AppState, Message};
 
 use iced::{
     button, container, image, Align, Button, Color, Column, Container, Element, Image, Length,
@@ -14,10 +14,14 @@ pub struct CoursePanel {
     delete_confirm_state: button::State,
     delete_cancel_state: button::State,
     course: Option<SavedCourse>,
+    course_response: Option<Course2Response>,
 }
 
 impl CoursePanel {
-    pub fn new(course: Option<SavedCourse>) -> CoursePanel {
+    pub fn new(
+        course: Option<SavedCourse>,
+        course_response: Option<Course2Response>,
+    ) -> CoursePanel {
         CoursePanel {
             panel_state: button::State::new(),
             add_state: button::State::new(),
@@ -25,7 +29,20 @@ impl CoursePanel {
             delete_confirm_state: button::State::new(),
             delete_cancel_state: button::State::new(),
             course,
+            course_response,
         }
+    }
+
+    pub fn get_smmdb_id(&self) -> Option<String> {
+        if let Some(course) = &self.course {
+            course.get_course().get_smmdb_id().clone()
+        } else {
+            None
+        }
+    }
+
+    pub fn set_response(&mut self, course_response: Course2Response) {
+        self.course_response = Some(course_response);
     }
 
     pub fn view(&mut self, state: &AppState, index: usize) -> Element<Message> {
@@ -33,25 +50,32 @@ impl CoursePanel {
             let course = course.get_course();
             let course_header = course.get_course().get_header();
 
+            let mut inner_content = Row::new();
+
+            if let Some(course_response) = &self.course_response {
+                // TODO
+                inner_content = inner_content.push(Text::new("YES"));
+            }
+
+            inner_content = inner_content
+                .push(
+                    Container::new(Image::new(image::Handle::from_memory(
+                        course.get_course_thumb().unwrap().clone().take_jpeg(),
+                    )))
+                    .max_width(240),
+                )
+                .push(Space::with_width(Length::Units(10)))
+                .push(
+                    Text::new(format!("{}", course_header.get_description()))
+                        .size(15)
+                        .width(Length::Fill),
+                )
+                .align_items(Align::Center);
+
             let mut content = Column::new()
                 .push(Text::new(format!("{}", course_header.get_title())).size(24))
                 .push(Space::with_height(Length::Units(10)))
-                .push(
-                    Row::new()
-                        .push(
-                            Container::new(Image::new(image::Handle::from_memory(
-                                course.get_course_thumb().unwrap().clone().take_jpeg(),
-                            )))
-                            .max_width(240),
-                        )
-                        .push(Space::with_width(Length::Units(10)))
-                        .push(
-                            Text::new(format!("{}", course_header.get_description()))
-                                .size(15)
-                                .width(Length::Fill),
-                        )
-                        .align_items(Align::Center),
-                )
+                .push(inner_content)
                 .width(Length::Shrink);
 
             content = if let AppState::DeleteSelect(idx) = state {

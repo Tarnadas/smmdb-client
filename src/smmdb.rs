@@ -7,6 +7,7 @@ use reqwest::{header, Client};
 use serde::{Deserialize, Serialize};
 use smmdb_lib::proto::SMM2Course::SMM2Course;
 use std::{
+    collections::HashMap,
     fmt,
     io::{self, ErrorKind},
 };
@@ -16,6 +17,7 @@ pub struct Smmdb {
     client: Client,
     apikey: Option<String>,
     query_params: QueryParams,
+    course_responses: HashMap<String, Course2Response>,
     course_panels: IndexMap<String, SmmdbCoursePanel>,
 }
 
@@ -25,18 +27,32 @@ impl Smmdb {
             client: Client::new(),
             apikey,
             query_params: serde_json::from_str::<QueryParams>("{}").unwrap(),
+            course_responses: HashMap::new(),
             course_panels: IndexMap::new(),
         }
     }
 
-    pub fn set_courses(&mut self, courses: Vec<Course2Response>) {
-        self.course_panels.clear();
+    pub fn set_courses(&mut self, courses: Vec<Course2Response>, update_panels: bool) {
         courses
-            .into_iter()
-            .map(SmmdbCoursePanel::new)
-            .for_each(|course| {
-                self.course_panels.insert(course.get_id().clone(), course);
+            .iter()
+            .cloned()
+            .map(|course| (course.get_id().clone(), course))
+            .for_each(|(smmdb_id, course_response)| {
+                self.course_responses.insert(smmdb_id, course_response);
             });
+        if update_panels {
+            self.course_panels.clear();
+            courses
+                .into_iter()
+                .map(SmmdbCoursePanel::new)
+                .for_each(|course| {
+                    self.course_panels.insert(course.get_id().clone(), course);
+                });
+        }
+    }
+
+    pub fn get_course_responses(&self) -> &HashMap<String, Course2Response> {
+        &self.course_responses
     }
 
     pub fn set_course_panel_thumbnail(&mut self, id: &String, thumbnail: Vec<u8>) {
@@ -269,32 +285,32 @@ impl fmt::Display for Difficulty {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct QueryParams {
     #[serde(default = "limit_default")]
     pub limit: u32,
     #[serde(default)]
     pub skip: u32,
     #[serde(default)]
-    id: Option<String>,
+    pub id: Option<String>,
     #[serde(default)]
-    ids: Option<Vec<String>>,
+    pub ids: Option<Vec<String>>,
     #[serde(default)]
-    title: Option<String>,
+    pub title: Option<String>,
     #[serde(default)]
-    title_exact: bool,
+    pub title_exact: bool,
     #[serde(default)]
-    title_case_sensitive: bool,
+    pub title_case_sensitive: bool,
     #[serde(default = "is_true")]
-    title_trimmed: bool,
+    pub title_trimmed: bool,
     #[serde(default)]
-    owner: Option<String>,
+    pub owner: Option<String>,
     #[serde(default)]
-    uploader: Option<String>,
+    pub uploader: Option<String>,
     #[serde(default)]
-    sort: Option<SortOptions>,
+    pub sort: Option<SortOptions>,
     #[serde(default)]
-    difficulty: Option<Difficulty>,
+    pub difficulty: Option<Difficulty>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

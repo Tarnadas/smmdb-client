@@ -54,8 +54,10 @@ pub enum Message {
     OpenCustomSave,
     LoadSave(smmdb_lib::Save, String),
     LoadSaveError(String),
+    FetchSaveCourses(Vec<String>),
     FetchCourses(QueryParams),
     FetchError(String),
+    SetSaveCourseResponse(Vec<Course2Response>),
     SetSmmdbCourses(Vec<Course2Response>),
     SetSmmdbCourseThumbnail(Vec<u8>, String),
     InitSwapCourse(usize),
@@ -181,14 +183,42 @@ impl Application for App {
             Message::LoadSave(smmdb_save, display_name) => {
                 self.state = AppState::Default;
                 self.error_state = AppErrorState::None;
-                self.current_page = Page::Save(SavePage::new(smmdb_save, display_name));
-                Command::none()
+                self.current_page = Page::Save(SavePage::new(smmdb_save.clone(), display_name));
+                let course_ids: Vec<String> = smmdb_save
+                    .get_own_courses()
+                    .iter()
+                    .filter_map(|c| c.as_ref())
+                    .map(|course| course.get_course().get_smmdb_id())
+                    .filter_map(|id| id)
+                    .collect();
+                if course_ids.len() > 0 {
+                    Command::perform(async {}, move |_| {
+                        Message::FetchSaveCourses(course_ids.clone())
+                    })
+                } else {
+                    Command::none()
+                }
             }
             Message::LoadSaveError(err) => {
                 eprintln!("{}", &err);
                 self.error_state =
                     AppErrorState::Some(format!("Could not load save file. Full error:\n{}", err));
                 Command::none()
+            }
+            Message::FetchSaveCourses(course_ids) => {
+                let query_params = QueryParams {
+                    limit: 120,
+                    ids: Some(course_ids),
+                    ..QueryParams::default()
+                };
+                let apikey = self.settings.apikey.clone();
+                Command::perform(
+                    Smmdb::update(query_params.clone(), apikey),
+                    move |res| match res {
+                        Ok(courses) => Message::SetSaveCourseResponse(courses),
+                        Err(err) => Message::FetchError(err.to_string()),
+                    },
+                )
             }
             Message::FetchCourses(query_params) => Command::perform(
                 Smmdb::update(query_params, self.settings.apikey.clone()),
@@ -198,14 +228,21 @@ impl Application for App {
                 },
             ),
             Message::FetchError(err) => {
-                dbg!(&err);
+                eprintln!("{}", &err);
                 self.error_state = AppErrorState::Some(err);
+                Command::none()
+            }
+            Message::SetSaveCourseResponse(courses) => {
+                self.smmdb.set_courses(courses, false);
+                if let Page::Save(ref mut save_page) = self.current_page {
+                    save_page.set_course_response(self.smmdb.get_course_responses())
+                }
                 Command::none()
             }
             Message::SetSmmdbCourses(courses) => {
                 self.state = AppState::Default;
                 self.error_state = AppErrorState::None;
-                self.smmdb.set_courses(courses);
+                self.smmdb.set_courses(courses, true);
                 let course_ids: Vec<String> =
                     self.smmdb.get_course_panels().keys().cloned().collect();
 
@@ -243,7 +280,11 @@ impl Application for App {
 
                 match self.current_page {
                     Page::Save(ref mut save_page) => {
-                        let fut = save_page.swap_courses(first as u8, second as u8);
+                        let fut = save_page.swap_courses(
+                            first as u8,
+                            second as u8,
+                            self.smmdb.get_course_responses(),
+                        );
                         futures::executor::block_on(fut).unwrap();
                         // TODO find better way than block_on
                         Command::perform(async {}, |_| Message::ResetState)
@@ -281,7 +322,11 @@ impl Application for App {
                             match self.current_page {
                                 Page::Save(ref mut save_page) => {
                                     let course: smmdb_lib::Course2 = data.try_into().unwrap();
-                                    let fut = save_page.add_course(save_index as u8, course);
+                                    let fut = save_page.add_course(
+                                        save_index as u8,
+                                        course,
+                                        self.smmdb.get_course_responses(),
+                                    );
                                     futures::executor::block_on(fut).unwrap();
                                     // TODO find better way than block_on
                                     return Command::perform(async {}, |_| Message::ResetState);
@@ -308,7 +353,8 @@ impl Application for App {
 
                 match self.current_page {
                     Page::Save(ref mut save_page) => {
-                        let fut = save_page.delete_course(index as u8);
+                        let fut =
+                            save_page.delete_course(index as u8, self.smmdb.get_course_responses());
                         futures::executor::block_on(fut).unwrap();
                         // TODO find better way than block_on
                         Command::perform(async {}, |_| Message::ResetState)

@@ -1,10 +1,12 @@
 use crate::{
+    smmdb::Course2Response,
     widgets::{SaveWidget, SmmdbWidget},
     AppState, Smmdb,
 };
 
 use anyhow::Result;
 use iced::{Element, Row};
+use std::collections::HashMap;
 
 #[derive(Clone, Debug)]
 pub struct SavePage {
@@ -24,6 +26,10 @@ impl SavePage {
         }
     }
 
+    pub fn set_course_response(&mut self, courses: &HashMap<String, Course2Response>) {
+        self.save_widget.set_course_response(courses);
+    }
+
     pub fn view<'a>(
         &'a mut self,
         state: &AppState,
@@ -35,37 +41,52 @@ impl SavePage {
             .into()
     }
 
-    pub async fn swap_courses(&mut self, first: u8, second: u8) -> Result<()> {
+    pub async fn swap_courses(
+        &mut self,
+        first: u8,
+        second: u8,
+        course_responses: &HashMap<String, Course2Response>,
+    ) -> Result<()> {
         self.save.swap_course(first, second)?;
         self.save
             .save()
             .await
             .map_err(|err| -> anyhow::Error { err.into() })?;
-        self.generate_course_panels();
+        self.generate_course_panels(course_responses);
         Ok(())
     }
 
-    pub async fn add_course(&mut self, index: u8, course: smmdb_lib::Course2) -> Result<()> {
+    pub async fn add_course(
+        &mut self,
+        index: u8,
+        course: smmdb_lib::Course2,
+        course_responses: &HashMap<String, Course2Response>,
+    ) -> Result<()> {
         self.save.add_course(index, course)?;
         self.save
             .save()
             .await
             .map_err(|err| -> anyhow::Error { err.into() })?;
-        self.generate_course_panels();
+        self.generate_course_panels(course_responses);
         Ok(())
     }
 
-    pub async fn delete_course(&mut self, index: u8) -> Result<()> {
+    pub async fn delete_course(
+        &mut self,
+        index: u8,
+        course_responses: &HashMap<String, Course2Response>,
+    ) -> Result<()> {
         self.save.remove_course(index)?;
         self.save
             .save()
             .await
             .map_err(|err| -> anyhow::Error { err.into() })?;
-        self.generate_course_panels();
+        self.generate_course_panels(course_responses);
         Ok(())
     }
 
-    fn generate_course_panels(&mut self) {
-        self.save_widget.generate_course_panels(&self.save);
+    fn generate_course_panels(&mut self, course_responses: &HashMap<String, Course2Response>) {
+        self.save_widget
+            .generate_course_panels(&self.save, course_responses);
     }
 }
