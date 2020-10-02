@@ -1,4 +1,6 @@
-use crate::{font::*, icon, smmdb::Course2Response, styles::*, AppState, Message};
+use crate::{
+    components::VotingPanel, font::*, icon, smmdb::Course2Response, styles::*, AppState, Message,
+};
 
 use iced::{
     button, container, image, Align, Button, Color, Column, Container, Element, Image, Length,
@@ -8,6 +10,7 @@ use smmdb_lib::SavedCourse;
 
 #[derive(Clone, Debug)]
 pub struct CoursePanel {
+    voting_panel: VotingPanel,
     panel_state: button::State,
     add_state: button::State,
     delete_state: button::State,
@@ -23,6 +26,7 @@ impl CoursePanel {
         course_response: Option<Course2Response>,
     ) -> CoursePanel {
         CoursePanel {
+            voting_panel: VotingPanel::new(),
             panel_state: button::State::new(),
             add_state: button::State::new(),
             delete_state: button::State::new(),
@@ -53,8 +57,14 @@ impl CoursePanel {
             let mut inner_content = Row::new();
 
             if let Some(course_response) = &self.course_response {
-                // TODO
-                inner_content = inner_content.push(Text::new("YES"));
+                let voting_content = self.voting_panel.view(
+                    course_response.get_id().clone(),
+                    course_response.get_votes(),
+                    course_response.get_own_vote(),
+                );
+                inner_content = inner_content
+                    .push(voting_content)
+                    .push(Space::with_width(Length::Units(10)));
             }
 
             inner_content = inner_content

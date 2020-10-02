@@ -460,6 +460,9 @@ impl Application for App {
             }
             Message::SetVoteCourse(course_id, value) => {
                 self.smmdb.set_own_vote(course_id, value);
+                if let Page::Save(ref mut save_page) = self.current_page {
+                    save_page.set_course_response(self.smmdb.get_course_responses())
+                }
                 Command::none()
             }
             Message::OpenSettings => {

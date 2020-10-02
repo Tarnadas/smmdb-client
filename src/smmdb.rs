@@ -125,6 +125,9 @@ impl Smmdb {
         if let Some(course) = self.course_panels.get_mut(&course_id) {
             course.set_own_vote(value);
         }
+        self.course_responses
+            .get_mut(&course_id)
+            .map(|course| course.set_own_vote(value));
     }
 
     pub async fn update(

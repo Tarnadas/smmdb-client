@@ -1,4 +1,7 @@
-use crate::{icon, smmdb::Course2Response, smmdb::Difficulty, styles::*, AppState, Message};
+use crate::{
+    components::VotingPanel, icon, smmdb::Course2Response, smmdb::Difficulty, styles::*, AppState,
+    Message,
+};
 
 use iced::{
     button, container, Align, Background, Button, Color, Column, Container, Element, Image, Length,
@@ -8,6 +11,7 @@ use iced_native::widget::image::Handle;
 
 #[derive(Debug)]
 pub struct SmmdbCoursePanel {
+    voting_panel: VotingPanel,
     panel_state: button::State,
     upvote_state: button::State,
     downvote_state: button::State,
@@ -18,6 +22,7 @@ pub struct SmmdbCoursePanel {
 impl SmmdbCoursePanel {
     pub fn new(course: Course2Response) -> SmmdbCoursePanel {
         SmmdbCoursePanel {
+            voting_panel: VotingPanel::new(),
             panel_state: button::State::new(),
             upvote_state: button::State::new(),
             downvote_state: button::State::new(),
@@ -69,55 +74,11 @@ impl SmmdbCoursePanel {
             None => Space::with_height(Length::Shrink).into(),
         };
 
-        let mut upvote = Button::new(
-            &mut self.upvote_state,
-            if self.course.get_own_vote() > 0 {
-                icon::UP_ARROW_GREEN.clone()
-            } else {
-                icon::UP_ARROW.clone()
-            }
-            .width(Length::Units(24))
-            .height(Length::Units(24)),
-        )
-        .style(DefaultButtonStyle);
-        upvote = match self.course.get_own_vote() {
-            n if n > 0 => upvote.on_press(Message::ResetCourseVote(self.course.get_id().clone())),
-            _ => upvote.on_press(Message::UpvoteCourse(self.course.get_id().clone())),
-        };
-        let mut votes = Text::new(format!("{}", self.course.get_votes()));
-        match self.course.get_own_vote() {
-            n if n > 0 => {
-                votes = votes.color(TEXT_HIGHLIGHT_COLOR);
-            }
-            n if n < 0 => {
-                votes = votes.color(TEXT_DANGER_COLOR);
-            }
-            _ => {}
-        };
-        let mut downvote = Button::new(
-            &mut self.downvote_state,
-            if self.course.get_own_vote() < 0 {
-                icon::DOWN_ARROW_RED.clone()
-            } else {
-                icon::DOWN_ARROW.clone()
-            }
-            .width(Length::Units(24))
-            .height(Length::Units(24)),
-        )
-        .style(DefaultButtonStyle);
-        downvote = match self.course.get_own_vote() {
-            n if n < 0 => downvote.on_press(Message::ResetCourseVote(self.course.get_id().clone())),
-            _ => downvote.on_press(Message::DownvoteCourse(self.course.get_id().clone())),
-        };
-
-        let voting_content = Column::new()
-            .width(Length::Units(20))
-            .align_items(Align::Center)
-            .push(upvote)
-            .push(Space::with_height(Length::Units(16)))
-            .push(votes)
-            .push(Space::with_height(Length::Units(16)))
-            .push(downvote);
+        let voting_content = self.voting_panel.view(
+            self.course.get_id().clone(),
+            self.course.get_votes(),
+            self.course.get_own_vote(),
+        );
 
         let inner_content = Row::new()
             .push(voting_content)
