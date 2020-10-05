@@ -228,7 +228,7 @@ impl Application for App {
                 },
             ),
             Message::FetchError(err) => {
-                eprintln!("{}", &err);
+                eprintln!("FetchError: {}", &err);
                 self.error_state = AppErrorState::Some(err);
                 Command::none()
             }

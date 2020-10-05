@@ -136,7 +136,7 @@ impl Smmdb {
     ) -> Result<Vec<Course2Response>> {
         let qs = serde_qs::to_string(&query_params)
             .map_err(|err| io::Error::new(ErrorKind::Other, err.to_string()))?;
-        let mut client = Client::new().get(&format!("http://localhost:3030/courses2?{}", qs));
+        let mut client = Client::new().get(&format!("https://api.smmdb.net/courses2?{}", qs));
         if let Some(apikey) = apikey {
             client = client.header(header::AUTHORIZATION, &format!("APIKEY {}", apikey));
         }
@@ -149,7 +149,7 @@ impl Smmdb {
     pub async fn fetch_thumbnail(id: String) -> Result<Vec<u8>> {
         let bytes = Client::new()
             .get(&format!(
-                "http://localhost:3030/courses2/thumbnail/{}?size=m",
+                "https://api.smmdb.net/courses2/thumbnail/{}?size=m",
                 id
             ))
             .send()
@@ -161,13 +161,13 @@ impl Smmdb {
 
     pub fn download_course(id: String) -> Subscription<Progress> {
         Subscription::from_recipe(Download {
-            url: format!("http://localhost:3030/courses2/download/{}", id),
+            url: format!("https://api.smmdb.net/courses2/download/{}", id),
         })
     }
 
     pub async fn try_sign_in(apikey: String) -> std::result::Result<(), String> {
         match Client::new()
-            .post("http://localhost:3030/login")
+            .post("https://api.smmdb.net/login")
             .header(header::AUTHORIZATION, &format!("APIKEY {}", apikey))
             .send()
             .await
@@ -191,7 +191,7 @@ impl Smmdb {
         let body = serde_json::to_string(&VoteBody { value }).map_err(|err| err.to_string())?;
         match Client::new()
             .post(&format!(
-                "http://localhost:3030/courses2/vote/{}",
+                "https://api.smmdb.net/courses2/vote/{}",
                 course_id
             ))
             .header(header::AUTHORIZATION, &format!("APIKEY {}", apikey))
