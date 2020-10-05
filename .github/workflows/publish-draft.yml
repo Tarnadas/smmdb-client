@@ -26,10 +26,6 @@ jobs:
         run: |
           export LIB_VERSION=$(cat Cargo.toml | grep version | head -1 | sed 's/[",(version = )]//g') && \
           export GZIP=-9
-      - name: Check
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
       - name: Build
         uses: actions-rs/cargo@v1
         with:
@@ -67,10 +63,6 @@ jobs:
           export LIB_VERSION=$(cat Cargo.toml | grep version | head -1 | sed 's/[",(version = )]//g') && \
           export GZIP=-9
         shell: bash
-      - name: Check
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
       - name: Build
         uses: actions-rs/cargo@v1
         with:
@@ -108,10 +100,6 @@ jobs:
         run: |
           export LIB_VERSION=$(cat Cargo.toml | grep version | head -1 | sed 's/[",(version = )]//g') && \
           export GZIP=-9
-      - name: Check
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
       - name: Build
         uses: actions-rs/cargo@v1
         with:
