@@ -20,3 +20,8 @@ You can install SMMDB Client via Cargo:
 `cargo install --git https://github.com/Tarnadas/smmdb-client.git`
 
 It is recommended to install Cargo via [Rustup](https://rustup.rs/)
+
+### via Chocolatey (Windows Only)
+`choco install smmdb-client`
+
+Chocolatey install instructions/docs [Chocolatey.org](https://chocolatey.org/install)
