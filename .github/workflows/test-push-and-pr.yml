@@ -49,6 +49,7 @@ jobs:
         with:
           toolchain: nightly-2020-09-09
           override: true
+          components: rustfmt, clippy
       - name: Check
         uses: actions-rs/cargo@v1
         with:
@@ -73,6 +74,7 @@ jobs:
         with:
           toolchain: nightly-2020-09-09
           override: true
+          components: rustfmt, clippy
       - name: Check
         uses: actions-rs/cargo@v1
         with:
