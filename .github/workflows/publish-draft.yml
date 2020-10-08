@@ -65,6 +65,8 @@ jobs:
         shell: bash
       - name: Build
         uses: actions-rs/cargo@v1
+        env:
+          RUSTFLAGS: "-C link-args=-Wl,-zstack-size=16777216"
         with:
           command: build
           args: --release
