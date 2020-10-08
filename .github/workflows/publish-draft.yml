@@ -56,7 +56,7 @@ jobs:
       - name: Install nightly
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly-2020-09-09
+          toolchain: nightly-2020-10-08
           override: true
       - name: Set environment variables
         run: |
