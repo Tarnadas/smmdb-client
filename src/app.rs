@@ -113,9 +113,7 @@ impl Application for App {
                 window_size: WindowSize::M,
                 settings_button: button::State::new(),
             },
-            Command::perform(async {}, move |_| {
-                Message::FetchCourses(query_params.clone())
-            }),
+            async move { Message::FetchCourses(query_params.clone()) }.into(),
         )
     }
 
@@ -175,9 +173,7 @@ impl Application for App {
                             Command::none()
                         }
                     },
-                    Err(err) => Command::perform(async {}, move |_| {
-                        Message::LoadSaveError(format!("{:?}", err))
-                    }),
+                    Err(err) => async move { Message::LoadSaveError(format!("{:?}", err)) }.into(),
                 }
             }
             Message::LoadSave(smmdb_save, display_name) => {
@@ -192,9 +188,7 @@ impl Application for App {
                     .filter_map(|id| id)
                     .collect();
                 if course_ids.len() > 0 {
-                    Command::perform(async {}, move |_| {
-                        Message::FetchSaveCourses(course_ids.clone())
-                    })
+                    async move { Message::FetchSaveCourses(course_ids.clone()) }.into()
                 } else {
                     Command::none()
                 }
@@ -287,7 +281,7 @@ impl Application for App {
                         );
                         futures::executor::block_on(fut).unwrap();
                         // TODO find better way than block_on
-                        Command::perform(async {}, |_| Message::ResetState)
+                        async { Message::ResetState }.into()
                     }
                     _ => Command::none(),
                 }
@@ -329,7 +323,7 @@ impl Application for App {
                                     );
                                     futures::executor::block_on(fut).unwrap();
                                     // TODO find better way than block_on
-                                    return Command::perform(async {}, |_| Message::ResetState);
+                                    return async { Message::ResetState }.into();
                                 }
                                 _ => {
                                     // TODO
@@ -357,7 +351,7 @@ impl Application for App {
                             save_page.delete_course(index as u8, self.smmdb.get_course_responses());
                         futures::executor::block_on(fut).unwrap();
                         // TODO find better way than block_on
-                        Command::perform(async {}, |_| Message::ResetState)
+                        async { Message::ResetState }.into()
                     }
                     _ => Command::none(),
                 }
@@ -484,9 +478,7 @@ impl Application for App {
                             Err(err) => Message::RejectSettings(err),
                         })
                     }
-                    None => {
-                        Command::perform(async {}, move |_| Message::SaveSettings(settings.clone()))
-                    }
+                    None => async move { Message::SaveSettings(settings.clone()) }.into(),
                 }
             }
             Message::SaveSettings(settings) => {
