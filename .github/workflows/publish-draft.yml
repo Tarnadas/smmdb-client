@@ -22,16 +22,14 @@ jobs:
         with:
           toolchain: nightly-2020-09-09
           override: true
-      - name: Set environment variables
-        run: |
-          export LIB_VERSION=$(cat Cargo.toml | grep version | head -1 | sed 's/[",(version = )]//g') && \
-          export GZIP=-9
       - name: Build
         uses: actions-rs/cargo@v1
         with:
           command: build
           args: --release
       - name: Compress release
+        env:
+          GZIP: -9
         run: |
           cd target/release && \
           tar czvf smmdb-client-linux.tar.gz smmdb
@@ -39,11 +37,12 @@ jobs:
         uses: ncipollo/release-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: $(cat Cargo.toml | grep version | head -1 | sed 's/[",(version = )]//g')
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit: ${{ github.sha }}
           tag: ${{ github.sha }}
-          name: "SMMDB Client ${{ env.LIB_VERSION }} [Run#: ${{ github.run_number }}]"
+          name: "SMMDB Client ${{ env.VERSION }} [Run#: ${{ github.run_number }}]"
           artifacts: "target/release/smmdb-client-linux.tar.gz"
           draft: true
           allowUpdates: true
@@ -58,11 +57,6 @@ jobs:
         with:
           toolchain: nightly-2020-10-08
           override: true
-      - name: Set environment variables
-        run: |
-          export LIB_VERSION=$(cat Cargo.toml | grep version | head -1 | sed 's/[",(version = )]//g') && \
-          export GZIP=-9
-        shell: bash
       - name: Build
         uses: actions-rs/cargo@v1
         env:
@@ -71,6 +65,8 @@ jobs:
           command: build
           args: --release
       - name: Compress release
+        env:
+          GZIP: -9
         run: |
           cd target/release && \
           tar czvf smmdb-client-windows.tar.gz smmdb.exe
@@ -79,11 +75,12 @@ jobs:
         uses: ncipollo/release-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: $(cat Cargo.toml | grep version | head -1 | sed 's/[",(version = )]//g')
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit: ${{ github.sha }}
           tag: ${{ github.sha }}
-          name: "SMMDB Client ${{ env.LIB_VERSION }} [Run#: ${{ github.run_number }}]"
+          name: "SMMDB Client ${{ env.VERSION }} [Run#: ${{ github.run_number }}]"
           artifacts: "target/release/smmdb-client-windows.tar.gz"
           draft: true
           allowUpdates: true
@@ -98,16 +95,14 @@ jobs:
         with:
           toolchain: nightly-2020-09-09
           override: true
-      - name: Set environment variables
-        run: |
-          export LIB_VERSION=$(cat Cargo.toml | grep version | head -1 | sed 's/[",(version = )]//g') && \
-          export GZIP=-9
       - name: Build
         uses: actions-rs/cargo@v1
         with:
           command: build
           args: --release
       - name: Compress release
+        env:
+          GZIP: -9
         run: |
           cd target/release && \
           tar czvf smmdb-client-macos.tar.gz smmdb
@@ -115,11 +110,12 @@ jobs:
         uses: ncipollo/release-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: $(cat Cargo.toml | grep version | head -1 | sed 's/[",(version = )]//g')
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit: ${{ github.sha }}
           tag: ${{ github.sha }}
-          name: "SMMDB Client ${{ env.LIB_VERSION }} [Run#: ${{ github.run_number }}]"
+          name: "SMMDB Client ${{ env.VERSION }} [Run#: ${{ github.run_number }}]"
           artifacts: "target/release/smmdb-client-macos.tar.gz"
           draft: true
           allowUpdates: true
