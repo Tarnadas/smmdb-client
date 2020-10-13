@@ -1,4 +1,4 @@
-name: Rust
+name: Publish Draft
 
 on:
   push:
@@ -8,7 +8,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-linux:
+  publish-linux:
     runs-on: ubuntu-latest
 
     steps:
@@ -47,7 +47,7 @@ jobs:
           draft: true
           allowUpdates: true
 
-  build-windows:
+  publish-windows:
     runs-on: windows-latest
 
     steps:
@@ -85,7 +85,7 @@ jobs:
           draft: true
           allowUpdates: true
 
-  build-macos:
+  publish-macos:
     runs-on: macos-latest
 
     steps:

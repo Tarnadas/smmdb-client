@@ -1,4 +1,4 @@
-name: Rust
+name: Test
 
 on:
   push:
@@ -10,7 +10,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-linux:
+  test-linux:
     runs-on: ubuntu-latest
 
     steps:
@@ -39,7 +39,7 @@ jobs:
         with:
           command: clippy
 
-  build-windows:
+  test-windows:
     runs-on: windows-latest
 
     steps:
@@ -64,7 +64,7 @@ jobs:
         with:
           command: clippy
 
-  build-macos:
+  test-macos:
     runs-on: macos-latest
 
     steps:
