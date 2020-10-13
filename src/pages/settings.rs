@@ -11,6 +11,7 @@ pub struct SettingsPage {
     has_changed: bool,
     prev_page: Box<Page>,
     apikey: text_input::State,
+    unset_apikey: button::State,
     save: button::State,
     close: button::State,
 }
@@ -25,6 +26,7 @@ impl SettingsPage {
             has_changed: false,
             prev_page: Box::new(prev_page),
             apikey: text_input::State::new(),
+            unset_apikey: button::State::new(),
             save: button::State::new(),
             close: button::State::new(),
         }
@@ -33,6 +35,12 @@ impl SettingsPage {
     pub fn set_apikey(&mut self, apikey: String) {
         self.settings.apikey = Some(apikey);
         self.has_changed = true;
+    }
+
+    pub fn unset_apikey(&mut self) {
+        self.has_changed = self.has_apikey;
+        self.settings.apikey = None;
+        self.has_apikey = false;
     }
 
     pub fn get_prev_page(&self) -> Page {
@@ -49,7 +57,7 @@ impl SettingsPage {
                 TextInput::new(
                     &mut self.apikey,
                     if self.has_apikey {
-                        "You are already logged in. If you want to log in with a different account, plase insert your API key."
+                        "You are already logged in. If you want to log in with a different account, please insert your API key."
                     } else {
                         "API key"
                     },
@@ -66,8 +74,17 @@ impl SettingsPage {
                 )
                 .size(14)
                 .color(TEXT_HELP_COLOR),
+            );
+
+        if self.has_apikey {
+            content = content.push(
+                Button::new(&mut self.unset_apikey, Text::new("Logout"))
+                    .style(DefaultButtonDangerStyle)
+                    .on_press(Message::ResetApiKey),
             )
-            .push(Space::with_height(Length::Units(24)));
+        }
+
+        content = content.push(Space::with_height(Length::Units(24)));
 
         content = if let AppErrorState::Some(err) = error_state {
             content.push(Space::with_height(Length::Units(16))).push(

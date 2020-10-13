@@ -84,6 +84,7 @@ pub enum Message {
     RejectSettings(String),
     CloseSettings,
     ChangeApiKey(String),
+    ResetApiKey,
     ResetState,
 }
 
@@ -507,6 +508,12 @@ impl Application for App {
             Message::ChangeApiKey(apikey) => {
                 if let Page::Settings(ref mut settings_page) = self.current_page {
                     settings_page.set_apikey(apikey);
+                }
+                Command::none()
+            }
+            Message::ResetApiKey => {
+                if let Page::Settings(ref mut settings_page) = self.current_page {
+                    settings_page.unset_apikey();
                 }
                 Command::none()
             }
