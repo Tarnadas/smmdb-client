@@ -1,6 +1,6 @@
 [package]
 name = "smmdb"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Mario Reder <mreder1289@gmail.com>"]
 edition = "2018"
 
@@ -9,9 +9,9 @@ anyhow = "1"
 dirs = "3.0"
 env_logger = "0.7"
 futures = "0.3"
-iced = { git = "https://github.com/Tarnadas/iced.git", commit = "c6d7ca7e16f2720327a412cba8a2bafc241e9cc5", features = [ "image", "svg", "tokio" ] }
-iced_native = { git = "https://github.com/Tarnadas/iced.git", commit = "c6d7ca7e16f2720327a412cba8a2bafc241e9cc5" }
-iced_wgpu = { git = "https://github.com/Tarnadas/iced.git", commit = "c6d7ca7e16f2720327a412cba8a2bafc241e9cc5" }
+iced = { git = "https://github.com/hecrj/iced.git", commit = "be61d84caed47c066d4c405aba465a026c2898e6", features = [ "image", "svg", "tokio" ] }
+iced_native = { git = "https://github.com/hecrj/iced.git", commit = "be61d84caed47c066d4c405aba465a026c2898e6" }
+iced_wgpu = { git = "https://github.com/hecrj/iced.git", commit = "be61d84caed47c066d4c405aba465a026c2898e6" }
 image = "0.23"
 indexmap = "1.6"
 lazy_static = "1"

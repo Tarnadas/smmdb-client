@@ -16,13 +16,13 @@ pub struct CoursePanel {
     delete_state: button::State,
     delete_confirm_state: button::State,
     delete_cancel_state: button::State,
-    course: Option<SavedCourse>,
+    course: Option<Box<SavedCourse>>,
     course_response: Option<Course2Response>,
 }
 
 impl CoursePanel {
     pub fn new(
-        course: Option<SavedCourse>,
+        course: Option<Box<SavedCourse>>,
         course_response: Option<Course2Response>,
     ) -> CoursePanel {
         CoursePanel {
