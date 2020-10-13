@@ -35,7 +35,7 @@ impl SmmdbCoursePanel {
         self.course.set_own_vote(value);
     }
 
-    pub fn view(&mut self, state: &AppState) -> Element<Message> {
+    pub fn view(&mut self, state: &AppState, is_logged_in: bool) -> Element<Message> {
         let course = self.course.get_course();
         let course_header = course.get_header();
 
@@ -78,6 +78,7 @@ impl SmmdbCoursePanel {
             self.course.get_id().clone(),
             self.course.get_votes(),
             self.course.get_own_vote(),
+            is_logged_in,
         );
 
         let inner_content = Row::new()

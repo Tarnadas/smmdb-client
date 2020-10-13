@@ -49,7 +49,7 @@ impl CoursePanel {
         self.course_response = Some(course_response);
     }
 
-    pub fn view(&mut self, state: &AppState, index: usize) -> Element<Message> {
+    pub fn view(&mut self, state: &AppState, index: usize, is_logged_in: bool) -> Element<Message> {
         let content: Element<Message> = if let Some(course) = &self.course {
             let course = course.get_course();
             let course_header = course.get_course().get_header();
@@ -61,6 +61,7 @@ impl CoursePanel {
                     course_response.get_id().clone(),
                     course_response.get_votes(),
                     course_response.get_own_vote(),
+                    is_logged_in,
                 );
                 inner_content = inner_content
                     .push(voting_content)

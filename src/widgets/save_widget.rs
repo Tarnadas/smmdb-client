@@ -45,13 +45,14 @@ impl SaveWidget {
         &'a mut self,
         state: &AppState,
         display_name: &String,
+        is_logged_in: bool,
     ) -> Element<crate::Message> {
         let mut content = Scrollable::new(&mut self.state)
             .padding(CONTAINER_PADDING)
             .spacing(LIST_SPACING)
             .push(Text::new(display_name).font(font::SMME));
         for (index, panel) in self.course_panels.iter_mut().enumerate() {
-            content = content.push(panel.view(state, index));
+            content = content.push(panel.view(state, index, is_logged_in));
         }
 
         content.width(Length::FillPortion(1)).into()

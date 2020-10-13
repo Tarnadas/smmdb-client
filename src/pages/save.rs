@@ -34,10 +34,14 @@ impl SavePage {
         &'a mut self,
         state: &AppState,
         smmdb: &'a mut Smmdb,
+        is_logged_in: bool,
     ) -> Element<crate::Message> {
         Row::new()
-            .push(self.save_widget.view(state, &self.display_name))
-            .push(self.smmdb_widget.view(state, smmdb))
+            .push(
+                self.save_widget
+                    .view(state, &self.display_name, is_logged_in),
+            )
+            .push(self.smmdb_widget.view(state, smmdb, is_logged_in))
             .into()
     }
 

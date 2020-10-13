@@ -40,6 +40,7 @@ impl SmmdbWidget {
         &'a mut self,
         state: &AppState,
         smmdb: &'a mut Smmdb,
+        is_logged_in: bool,
     ) -> Element<crate::Message> {
         let query_params = smmdb.get_query_params();
 
@@ -141,7 +142,7 @@ impl SmmdbWidget {
             .push(Space::with_height(Length::Units(8)))
             .push(paginator);
         for panel in smmdb.get_course_panels().values_mut() {
-            content = content.push(panel.view(state));
+            content = content.push(panel.view(state, is_logged_in));
         }
 
         content.width(Length::FillPortion(1)).into()

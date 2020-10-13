@@ -18,7 +18,13 @@ impl VotingPanel {
         }
     }
 
-    pub fn view(&mut self, course_id: String, votes: i32, own_vote: i32) -> Element<Message> {
+    pub fn view(
+        &mut self,
+        course_id: String,
+        votes: i32,
+        own_vote: i32,
+        is_logged_in: bool,
+    ) -> Element<Message> {
         let mut upvote = Button::new(
             &mut self.upvote_state,
             if own_vote > 0 {
@@ -30,10 +36,13 @@ impl VotingPanel {
             .height(Length::Units(24)),
         )
         .style(DefaultButtonStyle);
-        upvote = match own_vote {
-            n if n > 0 => upvote.on_press(Message::ResetCourseVote(course_id.clone())),
-            _ => upvote.on_press(Message::UpvoteCourse(course_id.clone())),
-        };
+        if is_logged_in {
+            upvote = match own_vote {
+                n if n > 0 => upvote.on_press(Message::ResetCourseVote(course_id.clone())),
+                _ => upvote.on_press(Message::UpvoteCourse(course_id.clone())),
+            };
+        }
+
         let mut votes = Text::new(format!("{}", votes));
         match own_vote {
             n if n > 0 => {
@@ -44,6 +53,7 @@ impl VotingPanel {
             }
             _ => {}
         };
+
         let mut downvote = Button::new(
             &mut self.downvote_state,
             if own_vote < 0 {
@@ -55,10 +65,12 @@ impl VotingPanel {
             .height(Length::Units(24)),
         )
         .style(DefaultButtonStyle);
-        downvote = match own_vote {
-            n if n < 0 => downvote.on_press(Message::ResetCourseVote(course_id.clone())),
-            _ => downvote.on_press(Message::DownvoteCourse(course_id.clone())),
-        };
+        if is_logged_in {
+            downvote = match own_vote {
+                n if n < 0 => downvote.on_press(Message::ResetCourseVote(course_id.clone())),
+                _ => downvote.on_press(Message::DownvoteCourse(course_id.clone())),
+            };
+        }
 
         Column::new()
             .width(Length::Units(20))

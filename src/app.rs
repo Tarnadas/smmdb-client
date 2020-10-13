@@ -564,7 +564,9 @@ impl Application for App {
                 )
                 .push(match &mut self.current_page {
                     Page::Init(init_page) => init_page.view(&self.state, &self.error_state),
-                    Page::Save(save_page) => save_page.view(&self.state, &mut self.smmdb),
+                    Page::Save(save_page) => {
+                        save_page.view(&self.state, &mut self.smmdb, self.settings.apikey.is_some())
+                    }
                     Page::Settings(settings_page) => settings_page.view(&self.error_state),
                 }),
         )
