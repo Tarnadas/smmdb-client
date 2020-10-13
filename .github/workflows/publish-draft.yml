@@ -22,6 +22,9 @@ jobs:
         with:
           toolchain: nightly-2020-09-09
           override: true
+      - name: Set environment variables
+        run: |
+          echo "::set-env name=VERSION::$(cat Cargo.toml | grep version | head -1 | sed 's/[\",(version = )]//g')"
       - name: Build
         uses: actions-rs/cargo@v1
         with:
@@ -37,7 +40,6 @@ jobs:
         uses: ncipollo/release-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: $(cat Cargo.toml | grep version | head -1 | sed 's/[",(version = )]//g')
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit: ${{ github.sha }}
@@ -57,6 +59,9 @@ jobs:
         with:
           toolchain: nightly-2020-10-08
           override: true
+      - name: Set environment variables
+        run: |
+          echo "::set-env name=VERSION::$(cat Cargo.toml | grep version | head -1 | sed 's/[\",(version = )]//g')"
       - name: Build
         uses: actions-rs/cargo@v1
         with:
@@ -73,7 +78,6 @@ jobs:
         uses: ncipollo/release-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: $(cat Cargo.toml | grep version | head -1 | sed 's/[",(version = )]//g')
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit: ${{ github.sha }}
@@ -93,6 +97,9 @@ jobs:
         with:
           toolchain: nightly-2020-09-09
           override: true
+      - name: Set environment variables
+        run: |
+          echo "::set-env name=VERSION::$(cat Cargo.toml | grep version | head -1 | sed 's/[\",(version = )]//g')"
       - name: Build
         uses: actions-rs/cargo@v1
         with:
@@ -108,7 +115,6 @@ jobs:
         uses: ncipollo/release-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: $(cat Cargo.toml | grep version | head -1 | sed 's/[",(version = )]//g')
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit: ${{ github.sha }}
