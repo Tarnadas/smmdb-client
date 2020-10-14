@@ -74,6 +74,7 @@ pub enum Message {
     ApplyFilters,
     PaginateForward,
     PaginateBackward,
+    ReloadCourses,
     UpvoteCourse(String),
     DownvoteCourse(String),
     ResetCourseVote(String),
@@ -415,6 +416,19 @@ impl Application for App {
                     },
                 )
             }
+            Message::ReloadCourses => {
+                self.state = AppState::Loading;
+                Command::perform(
+                    Box::pin(Smmdb::update(
+                        self.smmdb.get_query_params().clone(),
+                        self.settings.apikey.clone(),
+                    )),
+                    move |res| match res {
+                        Ok(courses) => Message::SetSmmdbCourses(courses),
+                        Err(err) => Message::FetchError(err.to_string()),
+                    },
+                )
+            }
             Message::UpvoteCourse(course_id) => {
                 if let Some(apikey) = self.settings.apikey.clone() {
                     Command::perform(
@@ -492,7 +506,7 @@ impl Application for App {
                     self.current_page = settings_page.get_prev_page()
                 }
                 self.error_state = AppErrorState::None;
-                Command::none()
+                async { Message::ReloadCourses }.into()
             }
             Message::RejectSettings(err) => {
                 self.error_state = AppErrorState::Some(err);
