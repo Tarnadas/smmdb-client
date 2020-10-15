@@ -1,5 +1,10 @@
 # SMMDB Client
 
+![Continuous integration](https://github.com/Tarnadas/ninres-rs/workflows/Continuous%20integration/badge.svg)
+![GitHub All Releases](https://img.shields.io/github/downloads/Tarnadas/smmdb-client/total)
+![GitHub Releases](https://img.shields.io/github/downloads/Tarnadas/smmdb-client/latest/total)
+[![Discord](https://discordapp.com/api/guilds/559982917049253898/widget.png)](https://discord.gg/SPZsgSe)
+
 Save file editor for Super Mario Maker 2.
 
 It will automatically detect your Yuzu save folder, but you can also manually select any SMM2 save file on your system.
@@ -22,6 +27,7 @@ You can install SMMDB Client via Cargo:
 It is recommended to install Cargo via [Rustup](https://rustup.rs/)
 
 ### via Chocolatey (Windows Only)
+
 `choco install smmdb-client`
 
 Chocolatey install instructions/docs [Chocolatey.org](https://chocolatey.org/install)
