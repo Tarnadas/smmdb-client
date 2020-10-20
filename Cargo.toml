@@ -1,19 +1,19 @@
 [package]
 name = "smmdb"
-version = "0.2.2"
+version = "0.3.0"
 authors = ["Mario Reder <mreder1289@gmail.com>"]
 edition = "2018"
 
 [dependencies]
 anyhow = "1"
-dirs = "3.0"
-env_logger = "0.7"
+dirs = "3"
+env_logger = "0.8"
 futures = "0.3"
-iced = { git = "https://github.com/hecrj/iced.git", commit = "be61d84caed47c066d4c405aba465a026c2898e6", features = [ "image", "svg", "tokio" ] }
-iced_native = { git = "https://github.com/hecrj/iced.git", commit = "be61d84caed47c066d4c405aba465a026c2898e6" }
-iced_wgpu = { git = "https://github.com/hecrj/iced.git", commit = "be61d84caed47c066d4c405aba465a026c2898e6" }
+iced = { git = "https://github.com/hecrj/iced.git", commit = "23647d2f50f0e177b93cf09c72886a90702df982", features = [ "image", "svg", "tokio" ] }
+iced_native = { git = "https://github.com/hecrj/iced.git", commit = "23647d2f50f0e177b93cf09c72886a90702df982" }
+iced_wgpu = { git = "https://github.com/hecrj/iced.git", commit = "23647d2f50f0e177b93cf09c72886a90702df982" }
 image = "0.23"
-indexmap = "1.6"
+indexmap = "1"
 lazy_static = "1"
 nfd = { version = "0.2", package = "nfd2" }
 reqwest = "0.10"
