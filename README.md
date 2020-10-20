@@ -7,7 +7,7 @@
 
 Save file editor for Super Mario Maker 2.
 
-It will automatically detect your Yuzu save folder, but you can also manually select any SMM2 save file on your system.
+It will automatically detect your Yuzu and Ryujinx save folder, but you can also manually select any SMM2 save file on your system.
 
 This software lets you download courses from [SMMDB](https://smmdb.net).
 For planned features, please visit the [Github issue page](https://github.com/Tarnadas/smmdb-client/issues)
