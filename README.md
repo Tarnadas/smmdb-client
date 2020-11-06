@@ -3,7 +3,7 @@
 ![Continuous integration](https://github.com/Tarnadas/ninres-rs/workflows/Continuous%20integration/badge.svg)
 ![GitHub All Releases](https://img.shields.io/github/downloads/Tarnadas/smmdb-client/total)
 ![GitHub Releases](https://img.shields.io/github/downloads/Tarnadas/smmdb-client/latest/total)
-[![Discord](https://discordapp.com/api/guilds/559982917049253898/widget.png)](https://discord.gg/SPZsgSe)
+[![Discord](https://img.shields.io/discord/168893527357521920?label=Discord&logo=discord&color=7289da)](https://discord.gg/SPZsgSe)
 
 Save file editor for Super Mario Maker 2.
 
