@@ -26,6 +26,8 @@ fn main() -> Result<()> {
     use app::*;
     use iced::{window, Application};
 
+    human_panic::setup_panic!();
+
     let icon = match image::load_from_memory(include_bytes!("../assets/icons/icon.png")) {
         Ok(buffer) => {
             let buffer = buffer.to_rgba();
@@ -45,12 +47,19 @@ fn main() -> Result<()> {
         ..window::Settings::default()
     };
     let settings = iced::Settings {
-        antialiasing: true,
+        antialiasing: false,
         window,
         default_font: Some(font::DEFAULT_FONT_BYTES),
         ..iced::Settings::default()
     };
 
-    App::run(settings).unwrap();
+    match App::run(settings) {
+        Err(iced::Error::GraphicsAdapterNotFound) => {
+            panic!("Your GPU does not seem to support the Vulkan graphics API");
+        }
+        Ok(_) => Ok(()),
+        Err(err) => Err(err),
+    }
+    .unwrap();
     Ok(())
 }

@@ -9,9 +9,10 @@ anyhow = "1"
 dirs = "3"
 env_logger = "0.8"
 futures = "0.3"
-iced = { git = "https://github.com/hecrj/iced.git", commit = "23647d2f50f0e177b93cf09c72886a90702df982", features = [ "image", "svg", "tokio" ] }
-iced_native = { git = "https://github.com/hecrj/iced.git", commit = "23647d2f50f0e177b93cf09c72886a90702df982" }
-iced_wgpu = { git = "https://github.com/hecrj/iced.git", commit = "23647d2f50f0e177b93cf09c72886a90702df982" }
+human-panic = "1"
+iced = { git = "https://github.com/hecrj/iced.git", commit = "d0402d072d3f4e128c55fc0a6184c5f7c712bb20", features = [ "image", "svg", "tokio" ] }
+iced_native = { git = "https://github.com/hecrj/iced.git", commit = "d0402d072d3f4e128c55fc0a6184c5f7c712bb20" }
+iced_wgpu = { git = "https://github.com/hecrj/iced.git", commit = "d0402d072d3f4e128c55fc0a6184c5f7c712bb20" }
 image = "0.23"
 indexmap = "1"
 lazy_static = "1"
