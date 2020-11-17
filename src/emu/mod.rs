@@ -111,7 +111,6 @@ fn guess_dir(
                     let mut imkvdb_path = current_dir.clone();
                     imkvdb_path.push("bis/system/save/8000000000000000/0/imkvdb.arc");
                     current_dir.push("bis/user/save");
-                    dbg!(&current_dir);
 
                     if imkvdb_path.exists() {
                         let mut imkvdb = File::open(imkvdb_path)?;
@@ -119,11 +118,9 @@ fn guess_dir(
                         imkvdb.read_to_end(&mut buffer)?;
                         let mut game_id = decode_hex("01009B90006DC000")?;
                         game_id.reverse();
-                        dbg!(&game_id);
 
                         let imen_header_size = 0xC;
                         for chunk in buffer[0xC..].chunks(0x80 + imen_header_size) {
-                            dbg!(&chunk[imen_header_size..imen_header_size + 8]);
                             if game_id != chunk[imen_header_size..imen_header_size + 8].to_vec() {
                                 continue;
                             }
@@ -131,7 +128,6 @@ fn guess_dir(
                                 chunk[imen_header_size + 0x40..imen_header_size + 0x48].to_vec();
                             save_data_chunks.reverse();
                             let save_data_id = encode_hex(&save_data_chunks)?;
-                            dbg!(&save_data_id);
 
                             let mut path = current_dir.clone();
                             path.push(save_data_id);
