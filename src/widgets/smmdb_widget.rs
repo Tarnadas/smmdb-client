@@ -63,7 +63,7 @@ impl SmmdbWidget {
         let difficulty_pick_list = PickList::new(
             &mut self.difficulty_state,
             &Difficulty::ALL[..],
-            query_params.get_difficulty().clone(),
+            query_params.get_difficulty(),
             Message::DifficultyChanged,
         )
         .style(DefaultPickListStyle)
@@ -71,7 +71,7 @@ impl SmmdbWidget {
         let sort_pick_list = PickList::new(
             &mut self.sort_state,
             &SORT_OPTIONS[..],
-            query_params.get_sort().clone(),
+            query_params.get_sort(),
             Message::SortChanged,
         )
         .style(DefaultPickListStyle)
