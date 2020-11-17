@@ -91,6 +91,9 @@ fn guess_dir(
             match emu_type {
                 EmuType::Yuzu => {
                     current_dir.push("nand/user/save/0000000000000000");
+                    if !current_dir.as_path().exists() {
+                        continue;
+                    }
                     for entry in read_dir(current_dir.clone())? {
                         let entry = entry?;
                         let mut path = entry.path();
