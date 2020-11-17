@@ -24,7 +24,7 @@ jobs:
           override: true
       - name: Set environment variables
         run: |
-          echo "::set-env name=VERSION::$(cat Cargo.toml | grep version | head -1 | sed 's/[\",(version = )]//g')"
+          echo "VERSION=$(cat Cargo.toml | grep version | head -1 | sed 's/[\",(version = )]//g')" >> $GITHUB_ENV
       - name: Build
         uses: actions-rs/cargo@v1
         with:
@@ -61,7 +61,7 @@ jobs:
           override: true
       - name: Set environment variables
         run: |
-          echo "::set-env name=VERSION::$(cat Cargo.toml | grep version | head -1 | sed 's/[\",(version = )]//g')"
+          echo "VERSION=$(cat Cargo.toml | grep version | head -1 | sed 's/[\",(version = )]//g')" >> $GITHUB_ENV
       - name: Build
         uses: actions-rs/cargo@v1
         with:
@@ -99,7 +99,7 @@ jobs:
           override: true
       - name: Set environment variables
         run: |
-          echo "::set-env name=VERSION::$(cat Cargo.toml | grep version | head -1 | sed 's/[\",(version = )]//g')"
+          echo "VERSION=$(cat Cargo.toml | grep version | head -1 | sed 's/[\",(version = )]//g')" >> $GITHUB_ENV
       - name: Build
         uses: actions-rs/cargo@v1
         with:
