@@ -25,6 +25,8 @@ use anyhow::Result;
 fn main() -> Result<()> {
     use app::*;
     use iced::{window, Application};
+    
+    std::env::set_var("RUST_BACKTRACE", "1");
 
     human_panic::setup_panic!();
 
