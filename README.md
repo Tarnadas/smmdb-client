@@ -4,7 +4,7 @@
 ![GitHub All Releases](https://img.shields.io/github/downloads/Tarnadas/smmdb-client/total)
 ![GitHub Releases](https://img.shields.io/github/downloads/Tarnadas/smmdb-client/latest/total)
 [![Discord](https://img.shields.io/discord/168893527357521920?label=Discord&logo=discord&color=7289da)](https://discord.gg/SPZsgSe)
-[![Twitter](https://img.shields.io/twitter/follow/marior_dev?style=plastic&logo=twitter&label=follow&color=00acee)](https://twitter.com/marior_dev)
+[![Twitter](https://img.shields.io/twitter/follow/marior_dev?style=flat&logo=twitter&label=follow&color=00acee)](https://twitter.com/marior_dev)
 
 Save file editor for Super Mario Maker 2.
 
