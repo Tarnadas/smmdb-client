@@ -1,6 +1,6 @@
 [package]
 name = "smmdb"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["Mario Reder <mreder1289@gmail.com>"]
 edition = "2018"
 
