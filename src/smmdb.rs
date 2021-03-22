@@ -55,7 +55,7 @@ impl Smmdb {
         &self.course_responses
     }
 
-    pub fn set_course_panel_thumbnail(&mut self, id: &String, thumbnail: Vec<u8>) {
+    pub fn set_course_panel_thumbnail(&mut self, id: &str, thumbnail: Vec<u8>) {
         if let Some(course_panel) = self.course_panels.get_mut(id) {
             course_panel.set_thumbnail(thumbnail);
         }
@@ -125,9 +125,9 @@ impl Smmdb {
         if let Some(course) = self.course_panels.get_mut(&course_id) {
             course.set_own_vote(value);
         }
-        self.course_responses
-            .get_mut(&course_id)
-            .map(|course| course.set_own_vote(value));
+        if let Some(course) = self.course_responses.get_mut(&course_id) {
+            course.set_own_vote(value)
+        }
     }
 
     pub async fn update(
@@ -243,7 +243,7 @@ impl Course2Response {
 
     pub fn set_own_vote(&mut self, value: i32) {
         let diff = value - self.own_vote;
-        self.votes = self.votes + diff;
+        self.votes += diff;
         self.own_vote = value;
     }
 
@@ -344,7 +344,7 @@ impl QueryParams {
     }
 
     pub fn get_difficulty(&self) -> Option<Difficulty> {
-        self.difficulty.clone()
+        self.difficulty
     }
 }
 

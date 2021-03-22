@@ -88,14 +88,14 @@ impl SmmdbCoursePanel {
             .push(Space::with_width(Length::Units(10)))
             .push(
                 Column::new()
-                    .push(Text::new(format!("{}", course_header.get_description())).size(15))
+                    .push(Text::new(course_header.get_description()).size(15))
                     .push(Space::with_height(Length::Units(LIST_SPACING)))
                     .push(difficulty),
             )
             .align_items(Align::Center);
 
         let content = Column::new()
-            .push(Text::new(format!("{}", course_header.get_title())).size(24))
+            .push(Text::new(course_header.get_title()).size(24))
             .push(Space::with_height(Length::Units(10)))
             .push(inner_content);
 
@@ -136,7 +136,7 @@ impl button::StyleSheet for SmmdbCoursePanelButtonStyle {
                 AppState::DownloadSelect(_) => Some(PANEL_SELECT_ACTIVE),
                 _ => Some(PANEL_ACTIVE),
             },
-            border_radius: 8,
+            border_radius: 8.,
             ..button::Style::default()
         }
     }
@@ -148,7 +148,7 @@ impl button::StyleSheet for SmmdbCoursePanelButtonStyle {
                 AppState::DownloadSelect(_) => Some(PANEL_SELECT_HOVER),
                 _ => Some(PANEL_ACTIVE),
             },
-            border_radius: 8,
+            border_radius: 8.,
             ..button::Style::default()
         }
     }
@@ -160,7 +160,7 @@ impl container::StyleSheet for SmmdbCoursePanelStyle {
     fn style(&self) -> container::Style {
         container::Style {
             background: Some(PANEL_ACTIVE),
-            border_radius: 8,
+            border_radius: 8.,
             ..container::Style::default()
         }
     }

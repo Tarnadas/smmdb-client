@@ -9,12 +9,13 @@ use crate::{
 
 use futures::future;
 use iced::{
-    button, container, executor, Application, Background, Button, Column, Command, Container,
-    Element, Length, Row, Space, Subscription,
+    button, container, executor, Application, Background, Button, Clipboard, Column, Command,
+    Container, Element, Length, Row, Space, Subscription,
 };
 use iced_native::{keyboard, subscription, Event};
 use nfd::Response;
-use std::{convert::TryInto, path::PathBuf};
+use smmdb_lib::CourseEntry;
+use std::convert::TryInto;
 
 pub struct App {
     state: AppState,
@@ -52,7 +53,7 @@ pub enum Message {
     SetWindowSize(WindowSize),
     OpenSave(EmuSave),
     OpenCustomSave,
-    LoadSave(smmdb_lib::Save, String),
+    LoadSave(Box<smmdb_lib::Save>, String),
     LoadSaveError(String),
     FetchSaveCourses(Vec<String>),
     FetchCourses(QueryParams),
@@ -123,7 +124,7 @@ impl Application for App {
         String::from("SMMDB")
     }
 
-    fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
+    fn update(&mut self, message: Self::Message, _: &mut Clipboard) -> Command<Self::Message> {
         match message {
             Message::Empty => Command::none(),
             Message::SetWindowSize(window_size) => {
@@ -143,7 +144,7 @@ impl Application for App {
                     }),
                     move |res| match res {
                         (Ok(smmdb_save), Ok(display_name)) => {
-                            Message::LoadSave(smmdb_save, display_name)
+                            Message::LoadSave(Box::new(smmdb_save), display_name)
                         }
                         (Err(err), _) => Message::LoadSaveError(err.into()),
                         _ => todo!(),
@@ -154,19 +155,16 @@ impl Application for App {
                 self.state = AppState::Loading;
                 match nfd::open_pick_folder(None) {
                     Ok(result) => match result {
-                        Response::Okay(file_path) => {
-                            let file_path: PathBuf = file_path.into();
-                            Command::perform(
-                                Box::pin(smmdb_lib::Save::new(file_path.clone())),
-                                move |res| match res {
-                                    Ok(smmdb_save) => Message::LoadSave(
-                                        smmdb_save,
-                                        file_path.clone().to_string_lossy().into(),
-                                    ),
-                                    Err(err) => Message::LoadSaveError(err.into()),
-                                },
-                            )
-                        }
+                        Response::Okay(file_path) => Command::perform(
+                            Box::pin(smmdb_lib::Save::new(file_path.clone())),
+                            move |res| match res {
+                                Ok(smmdb_save) => Message::LoadSave(
+                                    Box::new(smmdb_save),
+                                    file_path.clone().to_string_lossy().into(),
+                                ),
+                                Err(err) => Message::LoadSaveError(err.into()),
+                            },
+                        ),
                         Response::OkayMultiple(_files) => {
                             println!("Not multifile select");
                             Command::none()
@@ -184,15 +182,22 @@ impl Application for App {
             Message::LoadSave(smmdb_save, display_name) => {
                 self.state = AppState::Default;
                 self.error_state = AppErrorState::None;
-                self.current_page = Page::Save(SavePage::new(smmdb_save.clone(), display_name));
+                self.current_page =
+                    Page::Save(Box::new(SavePage::new(*smmdb_save.clone(), display_name)));
                 let course_ids: Vec<String> = smmdb_save
                     .get_own_courses()
                     .iter()
                     .filter_map(|c| c.as_ref())
-                    .map(|course| course.get_course().get_smmdb_id())
+                    .map(|course| {
+                        if let CourseEntry::SavedCourse(course) = &**course {
+                            course.get_course().get_smmdb_id()
+                        } else {
+                            None
+                        }
+                    })
                     .filter_map(|id| id)
                     .collect();
-                if course_ids.len() > 0 {
+                if course_ids.is_empty() {
                     Box::pin(async move { Message::FetchSaveCourses(course_ids.clone()) }).into()
                 } else {
                     Command::none()
@@ -212,7 +217,7 @@ impl Application for App {
                 };
                 let apikey = self.settings.apikey.clone();
                 Command::perform(
-                    Box::pin(Smmdb::update(query_params.clone(), apikey)),
+                    Box::pin(Smmdb::update(query_params, apikey)),
                     move |res| match res {
                         Ok(courses) => Message::SetSaveCourseResponse(courses),
                         Err(err) => Message::FetchError(err.to_string()),
@@ -301,12 +306,13 @@ impl Application for App {
                 Command::none()
             }
             Message::DownloadProgressed(message) => {
-                match &mut self.state {
-                    AppState::Downloading {
-                        save_index,
-                        progress,
-                        ..
-                    } => match message {
+                if let AppState::Downloading {
+                    save_index,
+                    progress,
+                    ..
+                } = &mut self.state
+                {
+                    match message {
                         Progress::Started => {
                             *progress = 0.;
                         }
@@ -314,12 +320,11 @@ impl Application for App {
                             *progress = percentage;
                         }
                         Progress::Finished(data) => {
-                            let save_index = save_index.clone();
                             match self.current_page {
                                 Page::Save(ref mut save_page) => {
                                     let course: smmdb_lib::Course2 = data.try_into().unwrap();
                                     let fut = save_page.add_course(
-                                        save_index as u8,
+                                        *save_index as u8,
                                         course,
                                         self.smmdb.get_course_responses(),
                                     );
@@ -328,15 +333,14 @@ impl Application for App {
                                     return Box::pin(async { Message::ResetState }).into();
                                 }
                                 _ => {
-                                    // TODO
+                                    todo!()
                                 }
                             }
                         }
                         Progress::Errored => {
                             // TODO
                         }
-                    },
-                    _ => {}
+                    }
                 };
                 Command::none()
             }
@@ -435,7 +439,7 @@ impl Application for App {
                         Box::pin(Smmdb::vote(course_id.clone(), 1, apikey)),
                         move |res| match res {
                             Ok(()) => Message::SetVoteCourse(course_id.clone(), 1),
-                            Err(err) => Message::FetchError(err.to_string()),
+                            Err(err) => Message::FetchError(err),
                         },
                     )
                 } else {
@@ -448,7 +452,7 @@ impl Application for App {
                         Box::pin(Smmdb::vote(course_id.clone(), -1, apikey)),
                         move |res| match res {
                             Ok(()) => Message::SetVoteCourse(course_id.clone(), -1),
-                            Err(err) => Message::FetchError(err.to_string()),
+                            Err(err) => Message::FetchError(err),
                         },
                     )
                 } else {
@@ -461,7 +465,7 @@ impl Application for App {
                         Box::pin(Smmdb::vote(course_id.clone(), 0, apikey)),
                         move |res| match res {
                             Ok(()) => Message::SetVoteCourse(course_id.clone(), 0),
-                            Err(err) => Message::FetchError(err.to_string()),
+                            Err(err) => Message::FetchError(err),
                         },
                     )
                 } else {

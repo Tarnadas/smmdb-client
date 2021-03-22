@@ -1,6 +1,7 @@
 use crate::{components::CoursePanel, font, smmdb::Course2Response, styles::*, AppState};
 
 use iced::{scrollable, Element, Length, Scrollable, Text};
+use smmdb_lib::CourseEntry;
 use std::collections::HashMap;
 
 #[derive(Clone, Debug)]
@@ -44,7 +45,7 @@ impl SaveWidget {
     pub fn view<'a>(
         &'a mut self,
         state: &AppState,
-        display_name: &String,
+        display_name: &str,
         is_logged_in: bool,
     ) -> Element<crate::Message> {
         let mut content = Scrollable::new(&mut self.state)
@@ -68,10 +69,12 @@ impl SaveWidget {
             .iter()
             .map(|course| {
                 let course_response = if let Some(course) = course {
-                    if let Some(smmdb_id) = course.get_course().get_smmdb_id() {
-                        course_responses
-                            .get(&smmdb_id)
-                            .map(|response| response.clone())
+                    if let CourseEntry::SavedCourse(course) = &**course {
+                        if let Some(smmdb_id) = course.get_course().get_smmdb_id() {
+                            course_responses.get(&smmdb_id).cloned()
+                        } else {
+                            None
+                        }
                     } else {
                         None
                     }

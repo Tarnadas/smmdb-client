@@ -67,8 +67,8 @@ impl VotingPanel {
         .style(DefaultButtonStyle);
         if is_logged_in {
             downvote = match own_vote {
-                n if n < 0 => downvote.on_press(Message::ResetCourseVote(course_id.clone())),
-                _ => downvote.on_press(Message::DownvoteCourse(course_id.clone())),
+                n if n < 0 => downvote.on_press(Message::ResetCourseVote(course_id)),
+                _ => downvote.on_press(Message::DownvoteCourse(course_id)),
             };
         }
 
@@ -94,7 +94,7 @@ impl button::StyleSheet for SmmdbCoursePanelButtonStyle {
                 AppState::DownloadSelect(_) => Some(PANEL_SELECT_ACTIVE),
                 _ => Some(PANEL_ACTIVE),
             },
-            border_radius: 8,
+            border_radius: 8.,
             ..button::Style::default()
         }
     }
@@ -106,7 +106,7 @@ impl button::StyleSheet for SmmdbCoursePanelButtonStyle {
                 AppState::DownloadSelect(_) => Some(PANEL_SELECT_HOVER),
                 _ => Some(PANEL_ACTIVE),
             },
-            border_radius: 8,
+            border_radius: 8.,
             ..button::Style::default()
         }
     }
@@ -118,7 +118,7 @@ impl container::StyleSheet for SmmdbCoursePanelStyle {
     fn style(&self) -> container::Style {
         container::Style {
             background: Some(PANEL_ACTIVE),
-            border_radius: 8,
+            border_radius: 8.,
             ..container::Style::default()
         }
     }

@@ -32,7 +32,7 @@ fn main() -> Result<()> {
 
     let icon = match image::load_from_memory(include_bytes!("../assets/icons/icon.png")) {
         Ok(buffer) => {
-            let buffer = buffer.to_rgba();
+            let buffer = buffer.to_rgba8();
             let width = buffer.width();
             let height = buffer.height();
             let dynamic_image = image::DynamicImage::ImageRgba8(buffer);
@@ -49,7 +49,7 @@ fn main() -> Result<()> {
         ..window::Settings::default()
     };
     let settings = iced::Settings {
-        antialiasing: false,
+        antialiasing: true,
         window,
         default_font: Some(font::DEFAULT_FONT_BYTES),
         ..iced::Settings::default()
@@ -61,7 +61,6 @@ fn main() -> Result<()> {
         }
         Ok(_) => Ok(()),
         Err(err) => Err(err),
-    }
-    .unwrap();
+    }?;
     Ok(())
 }

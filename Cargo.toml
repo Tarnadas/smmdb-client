@@ -10,9 +10,9 @@ dirs = "3"
 env_logger = "0.8"
 futures = "0.3"
 human-panic = "1"
-iced = { git = "https://github.com/hecrj/iced.git", commit = "c03d46719ef79a796e03dab394248a55d92e0fbd", features = [ "image", "svg", "tokio" ] }
-iced_native = { git = "https://github.com/hecrj/iced.git", commit = "c03d46719ef79a796e03dab394248a55d92e0fbd" }
-iced_wgpu = { git = "https://github.com/hecrj/iced.git", commit = "c03d46719ef79a796e03dab394248a55d92e0fbd" }
+iced = { git = "https://github.com/hecrj/iced.git", rev = "0333a8daff6db989adc6035a4c09df171a86f6fe", features = [ "image", "svg", "tokio_old" ] }
+iced_native = { git = "https://github.com/hecrj/iced.git", rev = "0333a8daff6db989adc6035a4c09df171a86f6fe" }
+iced_wgpu = { git = "https://github.com/hecrj/iced.git", rev = "0333a8daff6db989adc6035a4c09df171a86f6fe" }
 image = "0.23"
 indexmap = "1"
 lazy_static = "1"
@@ -21,7 +21,7 @@ reqwest = "0.10"
 serde = { version = "1", features = [ "derive" ] }
 serde_json = "1"
 serde_qs = "0.7"
-smmdb-lib = { version = "1", features = [ "save" ], package = "smmdb" }
+smmdb-lib = { version = "2", git = "https://github.com/Tarnadas/smmdb-lib.git", features = [ "save" ], package = "smmdb" }
 
 [profile]
 [profile.dev]

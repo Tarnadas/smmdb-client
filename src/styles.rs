@@ -59,7 +59,7 @@ impl button::StyleSheet for DefaultButtonStyle {
     fn active(&self) -> button::Style {
         button::Style {
             background: Some(BUTTON_ACTIVE),
-            border_radius: 4,
+            border_radius: 4.,
             ..button::Style::default()
         }
     }
@@ -67,7 +67,7 @@ impl button::StyleSheet for DefaultButtonStyle {
     fn hovered(&self) -> button::Style {
         button::Style {
             background: Some(BUTTON_HOVER),
-            border_radius: 4,
+            border_radius: 4.,
             ..button::Style::default()
         }
     }
@@ -79,7 +79,7 @@ impl button::StyleSheet for DefaultButtonDangerStyle {
     fn active(&self) -> button::Style {
         button::Style {
             background: Some(BUTTON_ACTIVE),
-            border_radius: 4,
+            border_radius: 4.,
             ..button::Style::default()
         }
     }
@@ -87,7 +87,7 @@ impl button::StyleSheet for DefaultButtonDangerStyle {
     fn hovered(&self) -> button::Style {
         button::Style {
             background: Some(BUTTON_DANGER),
-            border_radius: 4,
+            border_radius: 4.,
             ..button::Style::default()
         }
     }
@@ -99,7 +99,7 @@ impl text_input::StyleSheet for DefaultTextInputStyle {
     fn active(&self) -> text_input::Style {
         text_input::Style {
             background: TEXT_INPUT_ACTIVE,
-            border_radius: 4,
+            border_radius: 4.,
             ..text_input::Style::default()
         }
     }
@@ -107,7 +107,7 @@ impl text_input::StyleSheet for DefaultTextInputStyle {
     fn focused(&self) -> text_input::Style {
         text_input::Style {
             background: TEXT_INPUT_FOCUS,
-            border_radius: 4,
+            border_radius: 4.,
             ..text_input::Style::default()
         }
     }
@@ -139,7 +139,7 @@ impl pick_list::StyleSheet for DefaultPickListStyle {
     fn active(&self) -> pick_list::Style {
         pick_list::Style {
             background: PICK_LIST_ACTIVE,
-            border_radius: 4,
+            border_radius: 4.,
             ..pick_list::Style::default()
         }
     }
@@ -147,7 +147,7 @@ impl pick_list::StyleSheet for DefaultPickListStyle {
     fn hovered(&self) -> pick_list::Style {
         pick_list::Style {
             background: PICK_LIST_HOVER,
-            border_radius: 4,
+            border_radius: 4.,
             ..pick_list::Style::default()
         }
     }

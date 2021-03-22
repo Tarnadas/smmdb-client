@@ -61,7 +61,7 @@ impl SettingsPage {
                     } else {
                         "API key"
                     },
-                    &self.settings.apikey.as_ref().unwrap_or_else(|| &empty),
+                    &self.settings.apikey.as_ref().unwrap_or(&empty),
                     Message::ChangeApiKey,
                 )
                 .padding(4),

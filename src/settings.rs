@@ -35,7 +35,7 @@ impl Settings {
         if !config_dir.exists() {
             create_dir(config_dir.clone())?;
         }
-        let mut settings_path = config_dir.clone();
+        let mut settings_path = config_dir;
         settings_path.push("settings.json");
         Ok(settings_path)
     }

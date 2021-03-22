@@ -9,6 +9,6 @@ pub use settings::SettingsPage;
 #[derive(Clone, Debug)]
 pub enum Page {
     Init(InitPage),
-    Save(SavePage),
+    Save(Box<SavePage>),
     Settings(SettingsPage),
 }

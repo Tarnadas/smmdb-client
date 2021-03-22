@@ -6,7 +6,7 @@ use iced::{
     button, container, image, Align, Button, Color, Column, Container, Element, Image, Length,
     ProgressBar, Row, Space, Text,
 };
-use smmdb_lib::SavedCourse;
+use smmdb_lib::CourseEntry;
 
 #[derive(Clone, Debug)]
 pub struct CoursePanel {
@@ -16,13 +16,13 @@ pub struct CoursePanel {
     delete_state: button::State,
     delete_confirm_state: button::State,
     delete_cancel_state: button::State,
-    course: Option<Box<SavedCourse>>,
+    course: Option<Box<CourseEntry>>,
     course_response: Option<Course2Response>,
 }
 
 impl CoursePanel {
     pub fn new(
-        course: Option<Box<SavedCourse>>,
+        course: Option<Box<CourseEntry>>,
         course_response: Option<Course2Response>,
     ) -> CoursePanel {
         CoursePanel {
@@ -39,7 +39,11 @@ impl CoursePanel {
 
     pub fn get_smmdb_id(&self) -> Option<String> {
         if let Some(course) = &self.course {
-            course.get_course().get_smmdb_id().clone()
+            if let CourseEntry::SavedCourse(course) = &**course {
+                course.get_course().get_smmdb_id()
+            } else {
+                None
+            }
         } else {
             None
         }
@@ -51,84 +55,91 @@ impl CoursePanel {
 
     pub fn view(&mut self, state: &AppState, index: usize, is_logged_in: bool) -> Element<Message> {
         let content: Element<Message> = if let Some(course) = &self.course {
-            let course = course.get_course();
-            let course_header = course.get_course().get_header();
+            match &**course {
+                CourseEntry::SavedCourse(course) => {
+                    let course = course.get_course();
+                    let course_header = course.get_course().get_header();
 
-            let mut inner_content = Row::new();
+                    let mut inner_content = Row::new();
 
-            if let Some(course_response) = &self.course_response {
-                let voting_content = self.voting_panel.view(
-                    course_response.get_id().clone(),
-                    course_response.get_votes(),
-                    course_response.get_own_vote(),
-                    is_logged_in,
-                );
-                inner_content = inner_content
-                    .push(voting_content)
-                    .push(Space::with_width(Length::Units(10)));
-            }
+                    if let Some(course_response) = &self.course_response {
+                        let voting_content = self.voting_panel.view(
+                            course_response.get_id().clone(),
+                            course_response.get_votes(),
+                            course_response.get_own_vote(),
+                            is_logged_in,
+                        );
+                        inner_content = inner_content
+                            .push(voting_content)
+                            .push(Space::with_width(Length::Units(10)));
+                    }
 
-            inner_content = inner_content
-                .push(
-                    Container::new(Image::new(image::Handle::from_memory(
-                        course.get_course_thumb().unwrap().clone().take_jpeg(),
-                    )))
-                    .max_width(240),
-                )
-                .push(Space::with_width(Length::Units(10)))
-                .push(
-                    Text::new(format!("{}", course_header.get_description()))
-                        .size(15)
-                        .width(Length::Fill),
-                )
-                .align_items(Align::Center);
-
-            let mut content = Column::new()
-                .push(Text::new(format!("{}", course_header.get_title())).size(24))
-                .push(Space::with_height(Length::Units(10)))
-                .push(inner_content)
-                .width(Length::Shrink);
-
-            content = if let AppState::DeleteSelect(idx) = state {
-                if *idx == index {
-                    content
-                        .push(Space::with_height(Length::Units(18)))
+                    inner_content = inner_content
                         .push(
-                            Text::new("Do you really want to delete this course?")
-                                .size(16)
-                                .font(HELVETICA_BOLD),
+                            Container::new(Image::new(image::Handle::from_memory(
+                                course.get_course_thumb().unwrap().clone().take_jpeg(),
+                            )))
+                            .max_width(240),
                         )
+                        .push(Space::with_width(Length::Units(10)))
                         .push(
-                            Row::new()
-                                .push(Space::with_width(Length::Fill))
+                            Text::new(course_header.get_description())
+                                .size(15)
+                                .width(Length::Fill),
+                        )
+                        .align_items(Align::Center);
+
+                    let mut content = Column::new()
+                        .push(Text::new(course_header.get_title()).size(24))
+                        .push(Space::with_height(Length::Units(10)))
+                        .push(inner_content)
+                        .width(Length::Shrink);
+
+                    content = if let AppState::DeleteSelect(idx) = state {
+                        if *idx == index {
+                            content
+                                .push(Space::with_height(Length::Units(18)))
                                 .push(
-                                    Button::new(
-                                        &mut self.delete_cancel_state,
-                                        Text::new("No").size(20).font(HELVETICA_BOLD),
-                                    )
-                                    .padding(BUTTON_PADDING)
-                                    .style(DefaultButtonStyle)
-                                    .on_press(Message::ResetState),
+                                    Text::new("Do you really want to delete this course?")
+                                        .size(16)
+                                        .font(HELVETICA_BOLD),
                                 )
-                                .push(Space::with_width(Length::Units(16)))
                                 .push(
-                                    Button::new(
-                                        &mut self.delete_confirm_state,
-                                        Text::new("Yes").size(20).font(HELVETICA_BOLD),
-                                    )
-                                    .padding(BUTTON_PADDING)
-                                    .style(DeleteButtonStyle)
-                                    .on_press(Message::DeleteCourse(index)),
-                                ),
-                        )
-                } else {
-                    content
-                }
-            } else {
-                content
-            };
+                                    Row::new()
+                                        .push(Space::with_width(Length::Fill))
+                                        .push(
+                                            Button::new(
+                                                &mut self.delete_cancel_state,
+                                                Text::new("No").size(20).font(HELVETICA_BOLD),
+                                            )
+                                            .padding(BUTTON_PADDING)
+                                            .style(DefaultButtonStyle)
+                                            .on_press(Message::ResetState),
+                                        )
+                                        .push(Space::with_width(Length::Units(16)))
+                                        .push(
+                                            Button::new(
+                                                &mut self.delete_confirm_state,
+                                                Text::new("Yes").size(20).font(HELVETICA_BOLD),
+                                            )
+                                            .padding(BUTTON_PADDING)
+                                            .style(DeleteButtonStyle)
+                                            .on_press(Message::DeleteCourse(index)),
+                                        ),
+                                )
+                        } else {
+                            content
+                        }
+                    } else {
+                        content
+                    };
 
-            content.into()
+                    content.into()
+                }
+                CourseEntry::CorruptedCourse(_) => {
+                    todo!()
+                }
+            }
         } else {
             let empty_text = Text::new("empty").size(18).width(Length::Shrink);
             let content: Element<Message> = if let AppState::Downloading {
@@ -263,8 +274,8 @@ impl button::StyleSheet for CoursePanelButtonStyle {
                 }
                 _ => Some(PANEL_ACTIVE),
             },
-            border_radius: 8,
-            border_width: 0,
+            border_radius: 8.,
+            border_width: 0.,
             ..button::Style::default()
         }
     }
@@ -289,8 +300,8 @@ impl button::StyleSheet for CoursePanelButtonStyle {
                 }
                 _ => Some(PANEL_ACTIVE),
             },
-            border_radius: 8,
-            border_width: 0,
+            border_radius: 8.,
+            border_width: 0.,
             ..button::Style::default()
         }
     }
@@ -302,8 +313,8 @@ impl container::StyleSheet for CoursePanelStyle {
     fn style(&self) -> container::Style {
         container::Style {
             background: Some(PANEL_ACTIVE),
-            border_radius: 8,
-            border_width: 0,
+            border_radius: 8.,
+            border_width: 0.,
             ..container::Style::default()
         }
     }
@@ -324,7 +335,7 @@ impl button::StyleSheet for SwapButtonStyle {
                 }
                 _ => Some(BUTTON_ACTIVE),
             },
-            border_radius: 4,
+            border_radius: 4.,
             ..button::Style::default()
         }
     }
@@ -342,7 +353,7 @@ impl button::StyleSheet for SwapButtonStyle {
                 }
                 _ => Some(BUTTON_HOVER),
             },
-            border_radius: 4,
+            border_radius: 4.,
             ..button::Style::default()
         }
     }
@@ -350,7 +361,7 @@ impl button::StyleSheet for SwapButtonStyle {
     fn disabled(&self) -> button::Style {
         button::Style {
             background: Some(BUTTON_DISABLED),
-            border_radius: 4,
+            border_radius: 4.,
             ..button::Style::default()
         }
     }
@@ -371,8 +382,8 @@ impl button::StyleSheet for DownloadButtonStyle {
                 }
                 _ => Some(BUTTON_ACTIVE),
             },
-            border_radius: 4,
-            border_width: 0,
+            border_radius: 4.,
+            border_width: 0.,
             ..button::Style::default()
         }
     }
@@ -390,7 +401,7 @@ impl button::StyleSheet for DownloadButtonStyle {
                 }
                 _ => Some(BUTTON_HOVER),
             },
-            border_radius: 4,
+            border_radius: 4.,
             ..button::Style::default()
         }
     }
@@ -398,7 +409,7 @@ impl button::StyleSheet for DownloadButtonStyle {
     fn disabled(&self) -> button::Style {
         button::Style {
             background: Some(BUTTON_DISABLED),
-            border_radius: 4,
+            border_radius: 4.,
             ..button::Style::default()
         }
     }
@@ -410,8 +421,8 @@ impl button::StyleSheet for DeleteButtonStyle {
     fn active(&self) -> button::Style {
         button::Style {
             background: Some(BUTTON_ACTIVE),
-            border_radius: 4,
-            border_width: 0,
+            border_radius: 4.,
+            border_width: 0.,
             ..button::Style::default()
         }
     }
@@ -420,7 +431,7 @@ impl button::StyleSheet for DeleteButtonStyle {
         button::Style {
             text_color: Color::WHITE,
             background: Some(BUTTON_DANGER),
-            border_radius: 4,
+            border_radius: 4.,
             ..button::Style::default()
         }
     }
@@ -428,7 +439,7 @@ impl button::StyleSheet for DeleteButtonStyle {
     fn disabled(&self) -> button::Style {
         button::Style {
             background: Some(BUTTON_DISABLED),
-            border_radius: 4,
+            border_radius: 4.,
             ..button::Style::default()
         }
     }

@@ -37,7 +37,7 @@ impl button::StyleSheet for SaveButtonStyle {
     fn active(&self) -> button::Style {
         button::Style {
             background: Some(BUTTON_ACTIVE),
-            border_radius: 4,
+            border_radius: 4.,
             ..button::Style::default()
         }
     }
@@ -45,7 +45,7 @@ impl button::StyleSheet for SaveButtonStyle {
     fn hovered(&self) -> button::Style {
         button::Style {
             background: Some(BUTTON_HOVER),
-            border_radius: 4,
+            border_radius: 4.,
             ..button::Style::default()
         }
     }
