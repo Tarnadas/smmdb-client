@@ -17,9 +17,13 @@ pub struct SavePage {
 }
 
 impl SavePage {
-    pub fn new(save: smmdb_lib::Save, display_name: String) -> SavePage {
+    pub fn new(
+        save: smmdb_lib::Save,
+        display_name: String,
+        course_responses: &HashMap<String, Course2Response>,
+    ) -> SavePage {
         SavePage {
-            save_widget: SaveWidget::new(&save),
+            save_widget: SaveWidget::new(&save, course_responses),
             save,
             display_name,
             smmdb_widget: SmmdbWidget::new(),
@@ -91,6 +95,6 @@ impl SavePage {
 
     fn generate_course_panels(&mut self, course_responses: &HashMap<String, Course2Response>) {
         self.save_widget
-            .generate_course_panels(&self.save, course_responses);
+            .regenerate_course_panels(&self.save, course_responses);
     }
 }

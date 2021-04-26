@@ -182,8 +182,11 @@ impl Application for App {
             Message::LoadSave(smmdb_save, display_name) => {
                 self.state = AppState::Default;
                 self.error_state = AppErrorState::None;
-                self.current_page =
-                    Page::Save(Box::new(SavePage::new(*smmdb_save.clone(), display_name)));
+                self.current_page = Page::Save(Box::new(SavePage::new(
+                    *smmdb_save.clone(),
+                    display_name,
+                    self.smmdb.get_course_responses(),
+                )));
                 let course_ids: Vec<String> = smmdb_save
                     .get_own_courses()
                     .iter()
@@ -198,9 +201,9 @@ impl Application for App {
                     .filter_map(|id| id)
                     .collect();
                 if course_ids.is_empty() {
-                    Box::pin(async move { Message::FetchSaveCourses(course_ids.clone()) }).into()
-                } else {
                     Command::none()
+                } else {
+                    Box::pin(async move { Message::FetchSaveCourses(course_ids.clone()) }).into()
                 }
             }
             Message::LoadSaveError(err) => {

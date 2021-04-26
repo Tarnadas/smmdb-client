@@ -11,12 +11,11 @@ pub struct SaveWidget {
 }
 
 impl SaveWidget {
-    pub fn new(save: &smmdb_lib::Save) -> SaveWidget {
-        let course_panels = save
-            .get_own_courses()
-            .iter()
-            .map(|course| CoursePanel::new(course.clone(), None))
-            .collect();
+    pub fn new(
+        save: &smmdb_lib::Save,
+        course_responses: &HashMap<String, Course2Response>,
+    ) -> SaveWidget {
+        let course_panels = Self::generate_course_panels(save, course_responses);
         SaveWidget {
             state: scrollable::State::new(),
             course_panels,
@@ -59,13 +58,19 @@ impl SaveWidget {
         content.width(Length::FillPortion(1)).into()
     }
 
-    pub fn generate_course_panels(
+    pub fn regenerate_course_panels(
         &mut self,
         save: &smmdb_lib::Save,
         course_responses: &HashMap<String, Course2Response>,
     ) {
-        self.course_panels = save
-            .get_own_courses()
+        self.course_panels = Self::generate_course_panels(save, course_responses);
+    }
+
+    fn generate_course_panels(
+        save: &smmdb_lib::Save,
+        course_responses: &HashMap<String, Course2Response>,
+    ) -> Vec<CoursePanel> {
+        save.get_own_courses()
             .iter()
             .map(|course| {
                 let course_response = if let Some(course) = course {
@@ -83,6 +88,6 @@ impl SaveWidget {
                 };
                 CoursePanel::new(course.clone(), course_response)
             })
-            .collect();
+            .collect()
     }
 }
