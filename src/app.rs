@@ -23,7 +23,7 @@ pub struct App {
     settings: Settings,
     current_page: Page,
     smmdb: Smmdb,
-    window_size: WindowSize,
+    _window_size: WindowSize,
     settings_button: button::State,
 }
 
@@ -113,7 +113,7 @@ impl Application for App {
                 settings,
                 current_page: Page::Init(InitPage::new(components)),
                 smmdb,
-                window_size: WindowSize::M,
+                _window_size: WindowSize::M,
                 settings_button: button::State::new(),
             },
             Box::pin(async move { Message::FetchCourses(query_params.clone()) }).into(),
@@ -129,7 +129,7 @@ impl Application for App {
             Message::Empty => Command::none(),
             Message::SetWindowSize(window_size) => {
                 // TODO listen to application resize somehow
-                self.window_size = window_size;
+                self._window_size = window_size;
                 Command::none()
             }
             Message::OpenSave(save) => {
@@ -198,7 +198,7 @@ impl Application for App {
                             None
                         }
                     })
-                    .filter_map(|id| id)
+                    .flatten()
                     .collect();
                 if course_ids.is_empty() {
                     Command::none()

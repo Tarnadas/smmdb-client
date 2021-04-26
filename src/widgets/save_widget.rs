@@ -27,11 +27,9 @@ impl SaveWidget {
             .iter_mut()
             .filter_map(|course_panel| {
                 if let Some(smmdb_id) = course_panel.get_smmdb_id() {
-                    if let Some(course_response) = courses.get(&smmdb_id) {
-                        Some((course_response, course_panel))
-                    } else {
-                        None
-                    }
+                    courses
+                        .get(&smmdb_id)
+                        .map(|course_response| (course_response, course_panel))
                 } else {
                     None
                 }
