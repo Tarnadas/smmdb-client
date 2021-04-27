@@ -2,8 +2,9 @@ use crate::{
     emu::*,
     icon,
     pages::{InitPage, SavePage, SettingsPage},
-    smmdb::{Course2Response, Difficulty, QueryParams, SortOptions},
+    smmdb::{Course2Response, Difficulty, QueryParams, SmmdbUser, SortOptions},
     styles::*,
+    widgets::SmmdbTab,
     EmuSave, Page, Progress, Settings, Smmdb,
 };
 
@@ -56,11 +57,14 @@ pub enum Message {
     LoadSave(Box<smmdb_lib::Save>, String),
     LoadSaveError(String),
     FetchSaveCourses(Vec<String>),
-    FetchCourses(QueryParams),
+    FetchCourses,
+    FetchSelfCourses,
     FetchError(String),
     SetSaveCourseResponse(Vec<Course2Response>),
     SetSmmdbCourses(Vec<Course2Response>),
+    SetSelfSmmdbCourses(Vec<Course2Response>),
     SetSmmdbCourseThumbnail(Vec<u8>, String),
+    SetSmmdbTab(SmmdbTab),
     InitSwapCourse(usize),
     SwapCourse(usize, usize),
     InitDownloadCourse(usize),
@@ -75,14 +79,16 @@ pub enum Message {
     ApplyFilters,
     PaginateForward,
     PaginateBackward,
-    ReloadCourses,
+    PaginateSelfForward,
+    PaginateSelfBackward,
+    UploadCourse,
     UpvoteCourse(String),
     DownvoteCourse(String),
     ResetCourseVote(String),
     SetVoteCourse(String, i32),
     OpenSettings,
     TrySaveSettings(Settings),
-    SaveSettings(Settings),
+    SaveSettings((Settings, Option<SmmdbUser>)),
     RejectSettings(String),
     CloseSettings,
     ChangeApiKey(String),
@@ -105,7 +111,19 @@ impl Application for App {
         let components = guess_emu_dir().unwrap();
         let settings = Settings::load().unwrap();
         let smmdb = Smmdb::new(settings.apikey.clone());
-        let query_params = smmdb.get_query_params().clone();
+        let mut commands = vec![
+            async move { Message::FetchCourses }.into(), // async move { Message::FetchSelfCourses(own_query_params.clone()) }.into(),
+        ];
+        if let Some(apikey) = &settings.apikey {
+            let settings = settings.clone();
+            commands.push(Command::perform(
+                Smmdb::try_sign_in(apikey.clone()),
+                move |res| match res {
+                    Ok(user) => Message::SaveSettings((settings.clone(), Some(user))),
+                    Err(err) => Message::FetchError(err),
+                },
+            ))
+        }
         (
             App {
                 state: AppState::Default,
@@ -116,7 +134,7 @@ impl Application for App {
                 _window_size: WindowSize::M,
                 settings_button: button::State::new(),
             },
-            Box::pin(async move { Message::FetchCourses(query_params.clone()) }).into(),
+            Command::batch(commands),
         )
     }
 
@@ -136,12 +154,12 @@ impl Application for App {
                 self.state = AppState::Loading;
                 let display_name = save.get_display_name().clone();
                 Command::perform(
-                    Box::pin(async move {
+                    async move {
                         futures::join!(
                             smmdb_lib::Save::new(save.get_location().clone()),
                             future::ok::<String, String>(display_name)
                         )
-                    }),
+                    },
                     move |res| match res {
                         (Ok(smmdb_save), Ok(display_name)) => {
                             Message::LoadSave(Box::new(smmdb_save), display_name)
@@ -155,16 +173,17 @@ impl Application for App {
                 self.state = AppState::Loading;
                 match nfd::open_pick_folder(None) {
                     Ok(result) => match result {
-                        Response::Okay(file_path) => Command::perform(
-                            Box::pin(smmdb_lib::Save::new(file_path.clone())),
-                            move |res| match res {
-                                Ok(smmdb_save) => Message::LoadSave(
-                                    Box::new(smmdb_save),
-                                    file_path.clone().to_string_lossy().into(),
-                                ),
-                                Err(err) => Message::LoadSaveError(err.into()),
-                            },
-                        ),
+                        Response::Okay(file_path) => {
+                            Command::perform(smmdb_lib::Save::new(file_path.clone()), move |res| {
+                                match res {
+                                    Ok(smmdb_save) => Message::LoadSave(
+                                        Box::new(smmdb_save),
+                                        file_path.clone().to_string_lossy().into(),
+                                    ),
+                                    Err(err) => Message::LoadSaveError(err.into()),
+                                }
+                            })
+                        }
                         Response::OkayMultiple(_files) => {
                             println!("Not multifile select");
                             Command::none()
@@ -174,9 +193,7 @@ impl Application for App {
                             Command::none()
                         }
                     },
-                    Err(err) => {
-                        Box::pin(async move { Message::LoadSaveError(format!("{:?}", err)) }).into()
-                    }
+                    Err(err) => async move { Message::LoadSaveError(format!("{:?}", err)) }.into(),
                 }
             }
             Message::LoadSave(smmdb_save, display_name) => {
@@ -203,7 +220,7 @@ impl Application for App {
                 if course_ids.is_empty() {
                     Command::none()
                 } else {
-                    Box::pin(async move { Message::FetchSaveCourses(course_ids.clone()) }).into()
+                    async move { Message::FetchSaveCourses(course_ids.clone()) }.into()
                 }
             }
             Message::LoadSaveError(err) => {
@@ -219,21 +236,41 @@ impl Application for App {
                     ..QueryParams::default()
                 };
                 let apikey = self.settings.apikey.clone();
+                Command::perform(Smmdb::update(query_params, apikey), move |res| match res {
+                    Ok(courses) => Message::SetSaveCourseResponse(courses),
+                    Err(err) => Message::FetchError(err.to_string()),
+                })
+            }
+            Message::FetchCourses => {
+                self.state = AppState::Loading;
                 Command::perform(
-                    Box::pin(Smmdb::update(query_params, apikey)),
+                    Smmdb::update(
+                        self.smmdb.get_query_params().clone(),
+                        self.settings.apikey.clone(),
+                    ),
                     move |res| match res {
-                        Ok(courses) => Message::SetSaveCourseResponse(courses),
+                        Ok(courses) => Message::SetSmmdbCourses(courses),
                         Err(err) => Message::FetchError(err.to_string()),
                     },
                 )
             }
-            Message::FetchCourses(query_params) => Command::perform(
-                Box::pin(Smmdb::update(query_params, self.settings.apikey.clone())),
-                move |res| match res {
-                    Ok(courses) => Message::SetSmmdbCourses(courses),
-                    Err(err) => Message::FetchError(err.to_string()),
-                },
-            ),
+            Message::FetchSelfCourses => {
+                if self.settings.apikey.is_some() {
+                    self.state = AppState::Loading;
+                    Command::perform(
+                        Smmdb::update_self(
+                            self.smmdb.get_own_query_params().clone(),
+                            self.settings.apikey.clone(),
+                        ),
+                        move |res| match res {
+                            Ok(courses) => Message::SetSelfSmmdbCourses(courses),
+                            Err(err) => Message::FetchError(err.to_string()),
+                        },
+                    )
+                } else {
+                    Command::none()
+                }
+            }
             Message::FetchError(err) => {
                 eprintln!("FetchError: {}", &err);
                 self.error_state = AppErrorState::Some(err);
@@ -256,9 +293,34 @@ impl Application for App {
                 let mut commands = Vec::<Command<Message>>::new();
                 for id in course_ids {
                     commands.push(Command::perform(
-                        Box::pin(async move {
+                        async move {
                             futures::join!(Smmdb::fetch_thumbnail(id.clone()), async { id })
-                        }),
+                        },
+                        |(thumbnail, id)| {
+                            if let Ok(thumbnail) = thumbnail {
+                                Message::SetSmmdbCourseThumbnail(thumbnail, id)
+                            } else {
+                                // TODO handle error
+                                Message::Empty
+                            }
+                        },
+                    ));
+                }
+                Command::batch(commands)
+            }
+            Message::SetSelfSmmdbCourses(courses) => {
+                self.state = AppState::Default;
+                self.error_state = AppErrorState::None;
+                self.smmdb.set_own_courses(courses, true);
+                let course_ids: Vec<String> =
+                    self.smmdb.get_own_course_panels().keys().cloned().collect();
+
+                let mut commands = Vec::<Command<Message>>::new();
+                for id in course_ids {
+                    commands.push(Command::perform(
+                        async move {
+                            futures::join!(Smmdb::fetch_thumbnail(id.clone()), async { id })
+                        },
                         |(thumbnail, id)| {
                             if let Ok(thumbnail) = thumbnail {
                                 Message::SetSmmdbCourseThumbnail(thumbnail, id)
@@ -273,6 +335,12 @@ impl Application for App {
             }
             Message::SetSmmdbCourseThumbnail(thumbnail, id) => {
                 self.smmdb.set_course_panel_thumbnail(&id, thumbnail);
+                Command::none()
+            }
+            Message::SetSmmdbTab(tab) => {
+                if let Page::Save(ref mut save_page) = self.current_page {
+                    save_page.set_smmdb_tab(tab)
+                }
                 Command::none()
             }
             Message::InitSwapCourse(index) => {
@@ -291,7 +359,7 @@ impl Application for App {
                         );
                         futures::executor::block_on(fut).unwrap();
                         // TODO find better way than block_on
-                        Box::pin(async { Message::ResetState }).into()
+                        async { Message::ResetState }.into()
                     }
                     _ => Command::none(),
                 }
@@ -333,7 +401,7 @@ impl Application for App {
                                     );
                                     futures::executor::block_on(fut).unwrap();
                                     // TODO find better way than block_on
-                                    return Box::pin(async { Message::ResetState }).into();
+                                    return async { Message::ResetState }.into();
                                 }
                                 _ => {
                                     todo!()
@@ -360,7 +428,7 @@ impl Application for App {
                             save_page.delete_course(index as u8, self.smmdb.get_course_responses());
                         futures::executor::block_on(fut).unwrap();
                         // TODO find better way than block_on
-                        Box::pin(async { Message::ResetState }).into()
+                        async { Message::ResetState }.into()
                     }
                     _ => Command::none(),
                 }
@@ -385,10 +453,10 @@ impl Application for App {
                 self.state = AppState::Loading;
                 self.smmdb.reset_pagination();
                 Command::perform(
-                    Box::pin(Smmdb::update(
+                    Smmdb::update(
                         self.smmdb.get_query_params().clone(),
                         self.settings.apikey.clone(),
-                    )),
+                    ),
                     move |res| match res {
                         Ok(courses) => Message::SetSmmdbCourses(courses),
                         Err(err) => Message::FetchError(err.to_string()),
@@ -399,10 +467,10 @@ impl Application for App {
                 self.state = AppState::Loading;
                 self.smmdb.paginate_forward();
                 Command::perform(
-                    Box::pin(Smmdb::update(
+                    Smmdb::update(
                         self.smmdb.get_query_params().clone(),
                         self.settings.apikey.clone(),
-                    )),
+                    ),
                     move |res| match res {
                         Ok(courses) => Message::SetSmmdbCourses(courses),
                         Err(err) => Message::FetchError(err.to_string()),
@@ -413,33 +481,54 @@ impl Application for App {
                 self.state = AppState::Loading;
                 self.smmdb.paginate_backward();
                 Command::perform(
-                    Box::pin(Smmdb::update(
+                    Smmdb::update(
                         self.smmdb.get_query_params().clone(),
                         self.settings.apikey.clone(),
-                    )),
+                    ),
                     move |res| match res {
                         Ok(courses) => Message::SetSmmdbCourses(courses),
                         Err(err) => Message::FetchError(err.to_string()),
                     },
                 )
             }
-            Message::ReloadCourses => {
+            Message::PaginateSelfForward => {
                 self.state = AppState::Loading;
+                self.smmdb.self_paginate_forward();
                 Command::perform(
-                    Box::pin(Smmdb::update(
-                        self.smmdb.get_query_params().clone(),
+                    Smmdb::update_self(
+                        self.smmdb.get_own_query_params().clone(),
                         self.settings.apikey.clone(),
-                    )),
+                    ),
                     move |res| match res {
-                        Ok(courses) => Message::SetSmmdbCourses(courses),
+                        Ok(courses) => Message::SetSelfSmmdbCourses(courses),
                         Err(err) => Message::FetchError(err.to_string()),
                     },
                 )
+            }
+            Message::PaginateSelfBackward => {
+                self.state = AppState::Loading;
+                self.smmdb.self_paginate_backward();
+                Command::perform(
+                    Smmdb::update_self(
+                        self.smmdb.get_own_query_params().clone(),
+                        self.settings.apikey.clone(),
+                    ),
+                    move |res| match res {
+                        Ok(courses) => Message::SetSelfSmmdbCourses(courses),
+                        Err(err) => Message::FetchError(err.to_string()),
+                    },
+                )
+            }
+            Message::UploadCourse => {
+                self.state = AppState::Loading;
+                // TODO
+                todo!();
+                Command::none()
             }
             Message::UpvoteCourse(course_id) => {
                 if let Some(apikey) = self.settings.apikey.clone() {
                     Command::perform(
-                        Box::pin(Smmdb::vote(course_id.clone(), 1, apikey)),
+                        Smmdb::vote(course_id.clone(), 1, apikey),
                         move |res| match res {
                             Ok(()) => Message::SetVoteCourse(course_id.clone(), 1),
                             Err(err) => Message::FetchError(err),
@@ -451,13 +540,12 @@ impl Application for App {
             }
             Message::DownvoteCourse(course_id) => {
                 if let Some(apikey) = self.settings.apikey.clone() {
-                    Command::perform(
-                        Box::pin(Smmdb::vote(course_id.clone(), -1, apikey)),
-                        move |res| match res {
+                    Command::perform(Smmdb::vote(course_id.clone(), -1, apikey), move |res| {
+                        match res {
                             Ok(()) => Message::SetVoteCourse(course_id.clone(), -1),
                             Err(err) => Message::FetchError(err),
-                        },
-                    )
+                        }
+                    })
                 } else {
                     Command::none()
                 }
@@ -465,7 +553,7 @@ impl Application for App {
             Message::ResetCourseVote(course_id) => {
                 if let Some(apikey) = self.settings.apikey.clone() {
                     Command::perform(
-                        Box::pin(Smmdb::vote(course_id.clone(), 0, apikey)),
+                        Smmdb::vote(course_id.clone(), 0, apikey),
                         move |res| match res {
                             Ok(()) => Message::SetVoteCourse(course_id.clone(), 0),
                             Err(err) => Message::FetchError(err),
@@ -496,24 +584,26 @@ impl Application for App {
                 settings.save().unwrap();
                 match &settings.apikey {
                     Some(apikey) => {
-                        Command::perform(Box::pin(Smmdb::try_sign_in(apikey.clone())), move |res| {
-                            match res {
-                                Ok(_) => Message::SaveSettings(settings.clone()),
-                                Err(err) => Message::RejectSettings(err),
-                            }
+                        Command::perform(Smmdb::try_sign_in(apikey.clone()), move |res| match res {
+                            Ok(user) => Message::SaveSettings((settings.clone(), Some(user))),
+                            Err(err) => Message::RejectSettings(err),
                         })
                     }
-                    None => async move { Message::SaveSettings(settings.clone()) }.into(),
+                    None => async move { Message::SaveSettings((settings.clone(), None)) }.into(),
                 }
             }
-            Message::SaveSettings(settings) => {
+            Message::SaveSettings((settings, user)) => {
                 settings.save().unwrap();
                 self.settings = settings;
+                self.smmdb.set_user(user);
                 if let Page::Settings(ref mut settings_page) = self.current_page {
                     self.current_page = settings_page.get_prev_page()
                 }
                 self.error_state = AppErrorState::None;
-                async { Message::ReloadCourses }.into()
+                Command::batch(vec![
+                    async { Message::FetchCourses }.into(),
+                    async { Message::FetchSelfCourses }.into(),
+                ])
             }
             Message::RejectSettings(err) => {
                 self.error_state = AppErrorState::Some(err);

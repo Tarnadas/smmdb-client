@@ -1,39 +1,38 @@
-use crate::{
-    font,
-    smmdb::{Difficulty, SortOptions, SORT_OPTIONS},
-    styles::*,
-    AppState, Message, Smmdb,
-};
+use super::{CoursesWidget, UploadsWidget};
+use crate::{font, styles::*, AppState, Message, Smmdb};
 
-use iced::{
-    button, pick_list, scrollable, text_input, Align, Button, Column, Element, Length, PickList,
-    Row, Scrollable, Space, Text, TextInput,
-};
+use iced::{button, scrollable, Align, Button, Element, Length, Row, Scrollable, Text};
+
+#[derive(Clone, Debug)]
+pub enum SmmdbTab {
+    Courses,
+    Uploads,
+}
 
 #[derive(Clone, Debug)]
 pub struct SmmdbWidget {
+    tab: SmmdbTab,
+    courses_widget: CoursesWidget,
+    uploads_widget: UploadsWidget,
     state: scrollable::State,
-    title_state: text_input::State,
-    uploader_state: text_input::State,
-    difficulty_state: pick_list::State<Difficulty>,
-    sort_state: pick_list::State<SortOptions>,
-    search_state: button::State,
-    backward_state: button::State,
-    forward_state: button::State,
+    courses_state: button::State,
+    uploads_state: button::State,
 }
 
 impl SmmdbWidget {
     pub fn new() -> SmmdbWidget {
         SmmdbWidget {
+            tab: SmmdbTab::Courses,
+            courses_widget: CoursesWidget::new(),
+            uploads_widget: UploadsWidget::new(),
             state: scrollable::State::new(),
-            title_state: text_input::State::new(),
-            uploader_state: text_input::State::new(),
-            difficulty_state: pick_list::State::default(),
-            sort_state: pick_list::State::default(),
-            search_state: button::State::new(),
-            backward_state: button::State::new(),
-            forward_state: button::State::new(),
+            courses_state: button::State::new(),
+            uploads_state: button::State::new(),
         }
+    }
+
+    pub fn set_smmdb_tab(&mut self, tab: SmmdbTab) {
+        self.tab = tab;
     }
 
     pub fn view<'a>(
@@ -42,109 +41,34 @@ impl SmmdbWidget {
         smmdb: &'a mut Smmdb,
         is_logged_in: bool,
     ) -> Element<crate::Message> {
-        let query_params = smmdb.get_query_params();
-
-        let title_text_input = TextInput::new(
-            &mut self.title_state,
-            "Title",
-            query_params.get_title(),
-            Message::TitleChanged,
-        )
-        .style(DefaultTextInputStyle)
-        .padding(4);
-        let uploader_text_input = TextInput::new(
-            &mut self.uploader_state,
-            "Uploader",
-            query_params.get_uploader(),
-            Message::UploaderChanged,
-        )
-        .style(DefaultTextInputStyle)
-        .padding(4);
-        let difficulty_pick_list = PickList::new(
-            &mut self.difficulty_state,
-            &Difficulty::ALL[..],
-            query_params.get_difficulty(),
-            Message::DifficultyChanged,
-        )
-        .style(DefaultPickListStyle)
-        .padding(4);
-        let sort_pick_list = PickList::new(
-            &mut self.sort_state,
-            &SORT_OPTIONS[..],
-            query_params.get_sort(),
-            Message::SortChanged,
-        )
-        .style(DefaultPickListStyle)
-        .padding(4);
-        let search_button = Button::new(&mut self.search_state, Text::new("Search"))
+        let courses_button = Button::new(&mut self.courses_state, Text::new("Courses".to_string()))
             .style(DefaultButtonStyle)
-            .on_press(Message::ApplyFilters);
+            .padding(BUTTON_PADDING)
+            .on_press(Message::SetSmmdbTab(SmmdbTab::Courses));
+        let uploads_button = Button::new(&mut self.uploads_state, Text::new("Uploads".to_string()))
+            .style(DefaultButtonStyle)
+            .padding(BUTTON_PADDING)
+            .on_press(Message::SetSmmdbTab(SmmdbTab::Uploads));
 
-        let filter = Column::new()
-            .push(Text::new("Filters:").font(font::HELVETICA_BOLD).size(16))
-            .push(title_text_input)
-            .push(Space::with_height(Length::Units(4)))
-            .push(uploader_text_input)
-            .push(Space::with_height(Length::Units(4)))
-            .push(difficulty_pick_list)
-            .push(Space::with_height(Length::Units(4)))
-            .push(Space::with_height(Length::Units(8)))
-            .push(Text::new("Sort by:").font(font::HELVETICA_BOLD).size(16))
-            .push(sort_pick_list)
-            .push(Space::with_height(Length::Units(4)))
-            .push(search_button);
-
-        let paginate_text = Text::new(&format!(
-            "{} – {}",
-            query_params.skip + 1,
-            query_params.skip + smmdb.get_course_panels().len() as u32
-        ));
-
-        let mut backward_button = Button::new(&mut self.backward_state, Text::new("<").size(24))
-            .style(DefaultButtonStyle);
-        backward_button = match state {
-            AppState::Loading | AppState::Downloading { .. } => backward_button,
-            _ => {
-                if smmdb.can_paginate_backward() {
-                    backward_button.on_press(Message::PaginateBackward)
-                } else {
-                    backward_button
-                }
-            }
-        };
-        let mut forward_button =
-            Button::new(&mut self.forward_state, Text::new(">").size(24)).style(DefaultButtonStyle);
-        forward_button = match state {
-            AppState::Loading | AppState::Downloading { .. } => forward_button,
-            _ => {
-                if smmdb.can_paginate_forward() {
-                    forward_button.on_press(Message::PaginateForward)
-                } else {
-                    forward_button
-                }
-            }
-        };
-
-        let paginator = Row::new()
+        let tab_buttons = Row::new()
+            .padding(CONTAINER_PADDING)
+            .spacing(LIST_SPACING)
             .align_items(Align::Center)
-            .push(Space::with_width(Length::Fill))
-            .push(paginate_text)
-            .push(Space::with_width(Length::Units(16)))
-            .push(backward_button)
-            .push(Space::with_width(Length::Units(16)))
-            .push(forward_button);
+            .push(courses_button)
+            .push(uploads_button);
 
         let mut content = Scrollable::new(&mut self.state)
             .padding(CONTAINER_PADDING)
             .spacing(LIST_SPACING)
+            .width(Length::FillPortion(1))
             .push(Text::new("SMMDB").font(font::SMME))
-            .push(filter)
-            .push(Space::with_height(Length::Units(8)))
-            .push(paginator);
-        for panel in smmdb.get_course_panels().values_mut() {
-            content = content.push(panel.view(state, is_logged_in));
-        }
+            .push(tab_buttons);
 
-        content.width(Length::FillPortion(1)).into()
+        content = match self.tab {
+            SmmdbTab::Courses => content.push(self.courses_widget.view(state, smmdb, is_logged_in)),
+            SmmdbTab::Uploads => content.push(self.uploads_widget.view(state, smmdb, is_logged_in)),
+        };
+
+        content.into()
     }
 }

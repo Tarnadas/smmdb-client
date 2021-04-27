@@ -12,13 +12,23 @@ use std::{
     io::{self, ErrorKind},
 };
 
+#[derive(Clone, Debug, Deserialize)]
+pub struct SmmdbUser {
+    id: String,
+    username: String,
+}
+
 #[derive(Debug)]
 pub struct Smmdb {
     client: Client,
     apikey: Option<String>,
+    user: Option<SmmdbUser>,
     query_params: QueryParams,
     course_responses: HashMap<String, Course2Response>,
     course_panels: IndexMap<String, SmmdbCoursePanel>,
+    own_query_params: QueryParams,
+    own_course_responses: HashMap<String, Course2Response>,
+    own_course_panels: IndexMap<String, SmmdbCoursePanel>,
 }
 
 impl Smmdb {
@@ -26,9 +36,24 @@ impl Smmdb {
         Smmdb {
             client: Client::new(),
             apikey,
+            user: None,
             query_params: serde_json::from_str::<QueryParams>("{}").unwrap(),
             course_responses: HashMap::new(),
             course_panels: IndexMap::new(),
+            own_query_params: serde_json::from_str::<QueryParams>("{}").unwrap(),
+            own_course_responses: HashMap::new(),
+            own_course_panels: IndexMap::new(),
+        }
+    }
+
+    pub fn set_user(&mut self, user: Option<SmmdbUser>) {
+        self.user = user;
+        if let Some(user) = &self.user {
+            self.own_query_params.owner = Some(user.id.clone());
+        } else {
+            self.own_query_params = serde_json::from_str::<QueryParams>("{}").unwrap();
+            self.own_course_responses.clear();
+            self.own_course_panels.clear();
         }
     }
 
@@ -51,12 +76,35 @@ impl Smmdb {
         }
     }
 
+    pub fn set_own_courses(&mut self, courses: Vec<Course2Response>, update_panels: bool) {
+        courses
+            .iter()
+            .cloned()
+            .map(|course| (course.get_id().clone(), course))
+            .for_each(|(smmdb_id, course_response)| {
+                self.own_course_responses.insert(smmdb_id, course_response);
+            });
+        if update_panels {
+            self.own_course_panels.clear();
+            courses
+                .into_iter()
+                .map(SmmdbCoursePanel::new)
+                .for_each(|course| {
+                    self.own_course_panels
+                        .insert(course.get_id().clone(), course);
+                });
+        }
+    }
+
     pub fn get_course_responses(&self) -> &HashMap<String, Course2Response> {
         &self.course_responses
     }
 
     pub fn set_course_panel_thumbnail(&mut self, id: &str, thumbnail: Vec<u8>) {
         if let Some(course_panel) = self.course_panels.get_mut(id) {
+            course_panel.set_thumbnail(thumbnail.clone());
+        }
+        if let Some(course_panel) = self.own_course_panels.get_mut(id) {
             course_panel.set_thumbnail(thumbnail);
         }
     }
@@ -65,28 +113,56 @@ impl Smmdb {
         &mut self.course_panels
     }
 
+    pub fn get_own_course_panels(&mut self) -> &mut IndexMap<String, SmmdbCoursePanel> {
+        &mut self.own_course_panels
+    }
+
     pub fn get_query_params(&self) -> &QueryParams {
         &self.query_params
+    }
+
+    pub fn get_own_query_params(&self) -> &QueryParams {
+        &self.own_query_params
     }
 
     pub fn can_paginate_forward(&self) -> bool {
         self.course_panels.len() as u32 == self.query_params.limit
     }
 
+    pub fn can_self_paginate_forward(&self) -> bool {
+        self.own_course_panels.len() as u32 == self.own_query_params.limit
+    }
+
     pub fn can_paginate_backward(&self) -> bool {
         self.query_params.skip > 0
+    }
+
+    pub fn can_self_paginate_backward(&self) -> bool {
+        self.own_query_params.skip > 0
     }
 
     pub fn paginate_forward(&mut self) {
         self.query_params.skip += self.query_params.limit;
     }
 
+    pub fn self_paginate_forward(&mut self) {
+        self.own_query_params.skip += self.own_query_params.limit;
+    }
+
     pub fn paginate_backward(&mut self) {
         self.query_params.skip -= self.query_params.limit;
     }
 
+    pub fn self_paginate_backward(&mut self) {
+        self.own_query_params.skip -= self.own_query_params.limit;
+    }
+
     pub fn reset_pagination(&mut self) {
         self.query_params.skip = 0;
+    }
+
+    pub fn reset_self_pagination(&mut self) {
+        self.own_query_params.skip = 0;
     }
 
     pub fn set_title(&mut self, title: String) {
@@ -146,6 +222,22 @@ impl Smmdb {
         Ok(response)
     }
 
+    pub async fn update_self(
+        query_params: QueryParams,
+        apikey: Option<String>,
+    ) -> Result<Vec<Course2Response>> {
+        let qs = serde_qs::to_string(&query_params)
+            .map_err(|err| io::Error::new(ErrorKind::Other, err.to_string()))?;
+        let mut client = Client::new().get(&format!("https://api.smmdb.net/courses2?{}", qs));
+        if let Some(apikey) = apikey {
+            client = client.header(header::AUTHORIZATION, &format!("APIKEY {}", apikey));
+        }
+
+        let body = client.send().await?.text().await?;
+        let response: Vec<Course2Response> = serde_json::from_str(&body)?;
+        Ok(response)
+    }
+
     pub async fn fetch_thumbnail(id: String) -> Result<Vec<u8>> {
         let bytes = Client::new()
             .get(&format!(
@@ -165,7 +257,7 @@ impl Smmdb {
         })
     }
 
-    pub async fn try_sign_in(apikey: String) -> std::result::Result<(), String> {
+    pub async fn try_sign_in(apikey: String) -> std::result::Result<SmmdbUser, String> {
         match Client::new()
             .post("https://api.smmdb.net/login")
             .header(header::AUTHORIZATION, &format!("APIKEY {}", apikey))
@@ -174,7 +266,8 @@ impl Smmdb {
         {
             Ok(response) => {
                 if response.status().is_success() {
-                    Ok(())
+                    let body = response.text().await.unwrap();
+                    Ok(serde_json::from_str(&body).unwrap())
                 } else {
                     Err("Could not sign in! Your API key seems to be wrong.".to_string())
                 }

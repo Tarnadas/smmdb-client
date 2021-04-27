@@ -1,6 +1,6 @@
 use crate::{
     smmdb::Course2Response,
-    widgets::{SaveWidget, SmmdbWidget},
+    widgets::{SaveWidget, SmmdbTab, SmmdbWidget},
     AppState, Smmdb,
 };
 
@@ -32,6 +32,10 @@ impl SavePage {
 
     pub fn set_course_response(&mut self, courses: &HashMap<String, Course2Response>) {
         self.save_widget.set_course_response(courses);
+    }
+
+    pub fn set_smmdb_tab(&mut self, tab: SmmdbTab) {
+        self.smmdb_widget.set_smmdb_tab(tab);
     }
 
     pub fn view<'a>(
