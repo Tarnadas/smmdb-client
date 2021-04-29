@@ -20,7 +20,7 @@ jobs:
       - name: Install nightly
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly-2021-03-25
+          toolchain: nightly-2021-04-25
           override: true
       - name: Set environment variables
         run: |
@@ -57,7 +57,7 @@ jobs:
       - name: Install nightly
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly-2021-03-25
+          toolchain: nightly-2021-04-25
           override: true
       - name: Set environment variables
         run: |
@@ -95,7 +95,7 @@ jobs:
       - name: Install nightly
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly-2021-03-25
+          toolchain: nightly-2021-04-25
           override: true
       - name: Set environment variables
         run: |
