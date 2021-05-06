@@ -13,6 +13,8 @@ pub struct CoursePanel {
     voting_panel: VotingPanel,
     panel_state: button::State,
     add_state: button::State,
+    upload_state: button::State,
+    swap_state: button::State,
     delete_state: button::State,
     delete_confirm_state: button::State,
     delete_cancel_state: button::State,
@@ -29,6 +31,8 @@ impl CoursePanel {
             voting_panel: VotingPanel::new(),
             panel_state: button::State::new(),
             add_state: button::State::new(),
+            upload_state: button::State::new(),
+            swap_state: button::State::new(),
             delete_state: button::State::new(),
             delete_confirm_state: button::State::new(),
             delete_cancel_state: button::State::new(),
@@ -95,12 +99,44 @@ impl CoursePanel {
                         .push(inner_content)
                         .width(Length::Shrink);
 
-                    content = if let AppState::DeleteSelect(idx) = state {
-                        if *idx == index {
+                    content = match state {
+                        AppState::DeleteSelect(idx) if *idx == index => content
+                            .push(Space::with_height(Length::Units(18)))
+                            .push(
+                                Text::new("Do you really want to delete this course?")
+                                    .size(16)
+                                    .font(HELVETICA_BOLD),
+                            )
+                            .push(
+                                Row::new()
+                                    .push(Space::with_width(Length::Fill))
+                                    .push(
+                                        Button::new(
+                                            &mut self.delete_cancel_state,
+                                            Text::new("Cancel").size(20).font(HELVETICA_BOLD),
+                                        )
+                                        .padding(BUTTON_PADDING)
+                                        .style(DefaultButtonStyle)
+                                        .on_press(Message::ResetState),
+                                    )
+                                    .push(Space::with_width(Length::Units(16)))
+                                    .push(
+                                        Button::new(
+                                            &mut self.delete_confirm_state,
+                                            Text::new("Delete").size(20).font(HELVETICA_BOLD),
+                                        )
+                                        .padding(BUTTON_PADDING)
+                                        .style(DeleteButtonStyle)
+                                        .on_press(Message::DeleteCourse(index)),
+                                    ),
+                            ),
+                        AppState::UploadSelect(upload_course)
+                            if upload_course.get_index() == index as u8 =>
+                        {
                             content
                                 .push(Space::with_height(Length::Units(18)))
                                 .push(
-                                    Text::new("Do you really want to delete this course?")
+                                    Text::new("Do you really want to upload this course?")
                                         .size(16)
                                         .font(HELVETICA_BOLD),
                                 )
@@ -110,7 +146,7 @@ impl CoursePanel {
                                         .push(
                                             Button::new(
                                                 &mut self.delete_cancel_state,
-                                                Text::new("No").size(20).font(HELVETICA_BOLD),
+                                                Text::new("Cancel").size(20).font(HELVETICA_BOLD),
                                             )
                                             .padding(BUTTON_PADDING)
                                             .style(DefaultButtonStyle)
@@ -120,18 +156,15 @@ impl CoursePanel {
                                         .push(
                                             Button::new(
                                                 &mut self.delete_confirm_state,
-                                                Text::new("Yes").size(20).font(HELVETICA_BOLD),
+                                                Text::new("Upload").size(20).font(HELVETICA_BOLD),
                                             )
                                             .padding(BUTTON_PADDING)
-                                            .style(DeleteButtonStyle)
-                                            .on_press(Message::DeleteCourse(index)),
+                                            .style(UploadButtonStyle)
+                                            .on_press(Message::UploadCourse(upload_course.clone())),
                                         ),
                                 )
-                        } else {
-                            content
                         }
-                    } else {
-                        content
+                        _ => content,
                     };
 
                     content.into()
@@ -180,51 +213,74 @@ impl CoursePanel {
         };
 
         let mut actions = Column::new();
-        if self.course.is_some() {
-            let mut swap_button = Button::new(
-                &mut self.add_state,
-                icon::SORT
-                    .clone()
-                    .width(Length::Units(24))
-                    .height(Length::Units(24)),
-            )
-            .style(SwapButtonStyle(state.clone(), index));
-            swap_button = match state {
-                AppState::SwapSelect(idx) => {
-                    if *idx == index {
-                        swap_button.on_press(Message::ResetState)
-                    } else {
-                        swap_button.on_press(Message::InitSwapCourse(index))
-                    }
-                }
-                AppState::Loading | AppState::Downloading { .. } => swap_button,
-                _ => swap_button.on_press(Message::InitSwapCourse(index)),
-            };
+        if let Some(course) = &self.course {
+            match &**course {
+                CourseEntry::SavedCourse(course) => {
+                    let mut swap_button = Button::new(
+                        &mut self.swap_state,
+                        icon::SORT
+                            .clone()
+                            .width(Length::Units(24))
+                            .height(Length::Units(24)),
+                    )
+                    .style(SwapButtonStyle(state.clone(), index));
+                    swap_button = match state {
+                        AppState::SwapSelect(idx) => {
+                            if *idx == index {
+                                swap_button.on_press(Message::ResetState)
+                            } else {
+                                swap_button.on_press(Message::InitSwapCourse(index))
+                            }
+                        }
+                        AppState::Loading | AppState::Downloading { .. } => swap_button,
+                        _ => swap_button.on_press(Message::InitSwapCourse(index)),
+                    };
 
-            let mut delete_button = Button::new(
-                &mut self.delete_state,
-                icon::DELETE
-                    .clone()
-                    .width(Length::Units(24))
-                    .height(Length::Units(24)),
-            )
-            .style(DeleteButtonStyle);
-            delete_button = match state {
-                AppState::DeleteSelect(idx) => {
-                    if *idx == index {
-                        delete_button.on_press(Message::ResetState)
-                    } else {
-                        delete_button.on_press(Message::InitDeleteCourse(index))
-                    }
-                }
-                AppState::Loading | AppState::Downloading { .. } => delete_button,
-                _ => delete_button.on_press(Message::InitDeleteCourse(index)),
-            };
+                    let mut delete_button = Button::new(
+                        &mut self.delete_state,
+                        icon::DELETE
+                            .clone()
+                            .width(Length::Units(24))
+                            .height(Length::Units(24)),
+                    )
+                    .style(DeleteButtonStyle);
+                    delete_button = match state {
+                        AppState::DeleteSelect(idx) => {
+                            if *idx == index {
+                                delete_button.on_press(Message::ResetState)
+                            } else {
+                                delete_button.on_press(Message::InitDeleteCourse(index))
+                            }
+                        }
+                        AppState::Loading | AppState::Downloading { .. } => delete_button,
+                        _ => delete_button.on_press(Message::InitDeleteCourse(index)),
+                    };
 
-            actions = actions
-                .push(swap_button)
-                .push(Space::with_height(Length::Units(10)))
-                .push(delete_button);
+                    if is_logged_in && self.course_response.is_none() && state != &AppState::Loading
+                    {
+                        let upload_button = Button::new(
+                            &mut self.upload_state,
+                            icon::UPLOAD
+                                .clone()
+                                .width(Length::Units(24))
+                                .height(Length::Units(24)),
+                        )
+                        .style(DefaultButtonStyle)
+                        .on_press(Message::InitUploadCourse(course.clone()));
+                        actions = actions
+                            .push(upload_button)
+                            .push(Space::with_height(Length::Units(10)));
+                    }
+
+                    actions = actions
+                        .push(swap_button)
+                        .push(Space::with_height(Length::Units(10)))
+                        .push(delete_button);
+                }
+                CourseEntry::CorruptedCourse(_) => {
+                    todo!();
+                }
+            }
         } else {
             let mut download_button = Button::new(
                 &mut self.add_state,
@@ -316,6 +372,36 @@ impl container::StyleSheet for CoursePanelStyle {
             border_radius: 8.,
             border_width: 0.,
             ..container::Style::default()
+        }
+    }
+}
+
+struct UploadButtonStyle;
+
+impl button::StyleSheet for UploadButtonStyle {
+    fn active(&self) -> button::Style {
+        button::Style {
+            background: Some(BUTTON_ACTIVE),
+            border_radius: 4.,
+            border_width: 0.,
+            ..button::Style::default()
+        }
+    }
+
+    fn hovered(&self) -> button::Style {
+        button::Style {
+            text_color: Color::WHITE,
+            background: Some(BUTTON_CONFIRM),
+            border_radius: 4.,
+            ..button::Style::default()
+        }
+    }
+
+    fn disabled(&self) -> button::Style {
+        button::Style {
+            background: Some(BUTTON_DISABLED),
+            border_radius: 4.,
+            ..button::Style::default()
         }
     }
 }

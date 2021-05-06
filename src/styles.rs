@@ -32,6 +32,7 @@ pub const BUTTON_SELECT_ACTIVE: Background = Background::Color(COLOR_LIGHTER_YEL
 pub const BUTTON_SELECT_CANCEL: Background = Background::Color(COLOR_RED);
 pub const BUTTON_HOVER: Background = Background::Color(COLOR_LIGHT_GREEN);
 pub const BUTTON_SELECT_HOVER: Background = Background::Color(COLOR_LIGHT_YELLOW);
+pub const BUTTON_CONFIRM: Background = Background::Color(COLOR_GREEN);
 pub const BUTTON_DANGER: Background = Background::Color(COLOR_RED);
 pub const BUTTON_DISABLED: Background = Background::Color(COLOR_GRAY);
 

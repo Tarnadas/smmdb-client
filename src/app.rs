@@ -15,7 +15,7 @@ use iced::{
 };
 use iced_native::{keyboard, subscription, Event};
 use nfd::Response;
-use smmdb_lib::CourseEntry;
+use smmdb_lib::{CourseEntry, SavedCourse};
 use std::convert::TryInto;
 
 pub struct App {
@@ -28,10 +28,11 @@ pub struct App {
     settings_button: button::State,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum AppState {
     Default,
     Loading,
+    UploadSelect(SavedCourse),
     SwapSelect(usize),
     DownloadSelect(usize),
     DeleteSelect(usize),
@@ -65,6 +66,8 @@ pub enum Message {
     SetSelfSmmdbCourses(Vec<Course2Response>),
     SetSmmdbCourseThumbnail(Vec<u8>, String),
     SetSmmdbTab(SmmdbTab),
+    InitUploadCourse(SavedCourse),
+    UploadCourse(SavedCourse),
     InitSwapCourse(usize),
     SwapCourse(usize, usize),
     InitDownloadCourse(usize),
@@ -81,7 +84,6 @@ pub enum Message {
     PaginateBackward,
     PaginateSelfForward,
     PaginateSelfBackward,
-    UploadCourse,
     UpvoteCourse(String),
     DownvoteCourse(String),
     ResetCourseVote(String),
@@ -111,9 +113,7 @@ impl Application for App {
         let components = guess_emu_dir().unwrap();
         let settings = Settings::load().unwrap();
         let smmdb = Smmdb::new(settings.apikey.clone());
-        let mut commands = vec![
-            async move { Message::FetchCourses }.into(), // async move { Message::FetchSelfCourses(own_query_params.clone()) }.into(),
-        ];
+        let mut commands = vec![async move { Message::FetchCourses }.into()];
         if let Some(apikey) = &settings.apikey {
             let settings = settings.clone();
             commands.push(Command::perform(
@@ -281,6 +281,7 @@ impl Application for App {
                 if let Page::Save(ref mut save_page) = self.current_page {
                     save_page.set_course_response(self.smmdb.get_course_responses())
                 }
+                self.state = AppState::Default;
                 Command::none()
             }
             Message::SetSmmdbCourses(courses) => {
@@ -342,6 +343,33 @@ impl Application for App {
                     save_page.set_smmdb_tab(tab)
                 }
                 Command::none()
+            }
+            Message::InitUploadCourse(course) => {
+                self.state = AppState::UploadSelect(course);
+                Command::none()
+            }
+            Message::UploadCourse(course) => {
+                self.state = AppState::Loading;
+                if let Some(apikey) = &self.settings.apikey {
+                    let apikey = apikey.clone();
+                    Command::perform(Smmdb::upload_course(course, apikey), move |res| match res {
+                        Ok(res) => {
+                            if !res.succeeded.is_empty() {
+                                Message::FetchSaveCourses(
+                                    res.succeeded.into_iter().map(|s| s.id).collect(),
+                                )
+                            } else {
+                                Message::ResetState
+                            }
+                        }
+                        Err(err) => {
+                            eprintln!("ERR {}", err);
+                            Message::ResetState
+                        }
+                    })
+                } else {
+                    Command::none()
+                }
             }
             Message::InitSwapCourse(index) => {
                 self.state = AppState::SwapSelect(index);
@@ -519,12 +547,6 @@ impl Application for App {
                     },
                 )
             }
-            Message::UploadCourse => {
-                self.state = AppState::Loading;
-                // TODO
-                todo!();
-                Command::none()
-            }
             Message::UpvoteCourse(course_id) => {
                 if let Some(apikey) = self.settings.apikey.clone() {
                     Command::perform(
@@ -638,15 +660,16 @@ impl Application for App {
 
     fn subscription(&self) -> Subscription<Message> {
         match &self.state {
-            AppState::SwapSelect(_) | AppState::DownloadSelect(_) | AppState::DeleteSelect(_) => {
-                subscription::events().map(|event| match event {
-                    Event::Keyboard(keyboard::Event::KeyReleased {
-                        key_code: keyboard::KeyCode::Escape,
-                        modifiers: _,
-                    }) => Message::ResetState,
-                    _ => Message::Empty,
-                })
-            }
+            AppState::UploadSelect(_)
+            | AppState::SwapSelect(_)
+            | AppState::DownloadSelect(_)
+            | AppState::DeleteSelect(_) => subscription::events().map(|event| match event {
+                Event::Keyboard(keyboard::Event::KeyReleased {
+                    key_code: keyboard::KeyCode::Escape,
+                    modifiers: _,
+                }) => Message::ResetState,
+                _ => Message::Empty,
+            }),
             AppState::Downloading { smmdb_id, .. } => {
                 Smmdb::download_course(smmdb_id.clone()).map(Message::DownloadProgressed)
             }

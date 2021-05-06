@@ -4,6 +4,9 @@ lazy_static! {
     pub static ref ADD: Svg = Svg::new(svg::Handle::from_memory(
         include_bytes!("../assets/icons/add.svg").to_vec(),
     ));
+    pub static ref UPLOAD: Svg = Svg::new(svg::Handle::from_memory(
+        include_bytes!("../assets/icons/upload.svg").to_vec(),
+    ));
     pub static ref SORT: Svg = Svg::new(svg::Handle::from_memory(
         include_bytes!("../assets/icons/sort.svg").to_vec(),
     ));

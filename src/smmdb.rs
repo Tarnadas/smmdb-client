@@ -5,17 +5,36 @@ use iced::Subscription;
 use indexmap::IndexMap;
 use reqwest::{header, Client};
 use serde::{Deserialize, Serialize};
-use smmdb_lib::proto::SMM2Course::SMM2Course;
+use smmdb_lib::{proto::SMM2Course::SMM2Course, SavedCourse};
 use std::{
     collections::HashMap,
     fmt,
-    io::{self, ErrorKind},
+    io::{self, ErrorKind, Write},
 };
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct SmmdbUser {
     id: String,
     username: String,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct UploadResponse {
+    pub succeeded: Vec<UploadSucceededResponse>,
+    pub failed: Vec<UploadFailedResponse>,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct UploadSucceededResponse {
+    pub id: String,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UploadFailedResponse {
+    similar_course_id: String,
+    title: String,
+    jaccard: f32,
 }
 
 #[derive(Debug)]
@@ -255,6 +274,21 @@ impl Smmdb {
         Subscription::from_recipe(Download {
             url: format!("https://api.smmdb.net/courses2/download/{}", id),
         })
+    }
+
+    pub async fn upload_course(course: SavedCourse, apikey: String) -> Result<UploadResponse> {
+        let file = course.get_course().as_zip()?;
+        let client = Client::new()
+            .put("https://api.smmdb.net/courses2")
+            .header(header::AUTHORIZATION, &format!("APIKEY {}", apikey))
+            .header(header::CONTENT_TYPE, "application/zip")
+            .header(header::CONTENT_LENGTH, file.len())
+            .body(file);
+
+        let body = client.send().await?.text().await?;
+        let response: UploadResponse = serde_json::from_str(&body)?;
+        dbg!(&response);
+        Ok(response)
     }
 
     pub async fn try_sign_in(apikey: String) -> std::result::Result<SmmdbUser, String> {
