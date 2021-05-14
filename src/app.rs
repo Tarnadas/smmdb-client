@@ -68,6 +68,7 @@ pub enum Message {
     SetSmmdbTab(SmmdbTab),
     InitUploadCourse(SavedCourse),
     UploadCourse(SavedCourse),
+    UploadSucceeded(SavedCourse, String),
     InitSwapCourse(usize),
     SwapCourse(usize, usize),
     InitDownloadCourse(usize),
@@ -352,24 +353,46 @@ impl Application for App {
                 self.state = AppState::Loading;
                 if let Some(apikey) = &self.settings.apikey {
                     let apikey = apikey.clone();
-                    Command::perform(Smmdb::upload_course(course, apikey), move |res| match res {
-                        Ok(res) => {
-                            if !res.succeeded.is_empty() {
-                                Message::FetchSaveCourses(
-                                    res.succeeded.into_iter().map(|s| s.id).collect(),
-                                )
-                            } else {
+                    let uploaded_course = course.clone();
+                    Command::perform(Smmdb::upload_course(uploaded_course, apikey), move |res| {
+                        match res {
+                            Ok(res) => {
+                                if !res.succeeded.is_empty() {
+                                    Message::UploadSucceeded(
+                                        course.clone(),
+                                        res.succeeded.get(0).unwrap().id.clone(),
+                                    )
+                                } else {
+                                    Message::ResetState
+                                }
+                            }
+                            Err(err) => {
+                                eprintln!("ERR {}", err);
                                 Message::ResetState
                             }
-                        }
-                        Err(err) => {
-                            eprintln!("ERR {}", err);
-                            Message::ResetState
                         }
                     })
                 } else {
                     Command::none()
                 }
+            }
+            Message::UploadSucceeded(course, id) => {
+                if let Page::Save(ref mut save_page) = self.current_page {
+                    save_page.set_course_response(self.smmdb.get_course_responses());
+                    let index = course.get_index();
+                    let mut course = course.get_course().clone();
+                    course.set_smmdb_id(id.clone()).unwrap();
+                    let fut = save_page.delete_course(index, self.smmdb.get_course_responses());
+                    futures::executor::block_on(fut).unwrap();
+                    let fut =
+                        save_page.add_course(index, course, self.smmdb.get_course_responses());
+                    futures::executor::block_on(fut).unwrap();
+                }
+                Command::batch(vec![
+                    async { Message::FetchSaveCourses(vec![id]) }.into(),
+                    async { Message::FetchCourses }.into(),
+                    async { Message::FetchSelfCourses }.into(),
+                ])
             }
             Message::InitSwapCourse(index) => {
                 self.state = AppState::SwapSelect(index);

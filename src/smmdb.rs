@@ -9,7 +9,7 @@ use smmdb_lib::{proto::SMM2Course::SMM2Course, SavedCourse};
 use std::{
     collections::HashMap,
     fmt,
-    io::{self, ErrorKind, Write},
+    io::{self, ErrorKind},
 };
 
 #[derive(Clone, Debug, Deserialize)]
@@ -287,7 +287,6 @@ impl Smmdb {
 
         let body = client.send().await?.text().await?;
         let response: UploadResponse = serde_json::from_str(&body)?;
-        dbg!(&response);
         Ok(response)
     }
 
