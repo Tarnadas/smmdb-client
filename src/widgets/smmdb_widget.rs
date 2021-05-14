@@ -40,7 +40,7 @@ impl SmmdbWidget {
         state: &AppState,
         smmdb: &'a mut Smmdb,
         is_logged_in: bool,
-    ) -> Element<crate::Message> {
+    ) -> impl Into<Element<crate::Message>> {
         let courses_button = Button::new(&mut self.courses_state, Text::new("Courses".to_string()))
             .style(DefaultButtonStyle)
             .padding(BUTTON_PADDING)
@@ -57,18 +57,16 @@ impl SmmdbWidget {
             .push(courses_button)
             .push(uploads_button);
 
-        let mut content = Scrollable::new(&mut self.state)
+        let content = Scrollable::new(&mut self.state)
             .padding(CONTAINER_PADDING)
             .spacing(LIST_SPACING)
             .width(Length::FillPortion(1))
             .push(Text::new("SMMDB").font(font::SMME))
             .push(tab_buttons);
 
-        content = match self.tab {
+        match self.tab {
             SmmdbTab::Courses => content.push(self.courses_widget.view(state, smmdb, is_logged_in)),
             SmmdbTab::Uploads => content.push(self.uploads_widget.view(state, smmdb, is_logged_in)),
-        };
-
-        content.into()
+        }
     }
 }

@@ -6,13 +6,12 @@ use crate::{
 };
 
 use iced::{
-    button, pick_list, scrollable, text_input, Align, Button, Column, Element, Length, PickList,
-    Row, Scrollable, Space, Text, TextInput,
+    button, pick_list, text_input, Align, Button, Column, Element, Length, PickList, Row, Space,
+    Text, TextInput,
 };
 
 #[derive(Clone, Debug)]
 pub struct CoursesWidget {
-    state: scrollable::State,
     title_state: text_input::State,
     uploader_state: text_input::State,
     difficulty_state: pick_list::State<Difficulty>,
@@ -25,7 +24,6 @@ pub struct CoursesWidget {
 impl CoursesWidget {
     pub fn new() -> CoursesWidget {
         CoursesWidget {
-            state: scrollable::State::new(),
             title_state: text_input::State::new(),
             uploader_state: text_input::State::new(),
             difficulty_state: pick_list::State::default(),
@@ -41,7 +39,7 @@ impl CoursesWidget {
         state: &AppState,
         smmdb: &'a mut Smmdb,
         is_logged_in: bool,
-    ) -> Element<crate::Message> {
+    ) -> impl Into<Element<crate::Message>> {
         let query_params = smmdb.get_query_params();
 
         let title_text_input = TextInput::new(
@@ -134,7 +132,7 @@ impl CoursesWidget {
             .push(Space::with_width(Length::Units(16)))
             .push(forward_button);
 
-        let mut content = Scrollable::new(&mut self.state)
+        let mut content = Column::new()
             .padding(CONTAINER_PADDING)
             .spacing(LIST_SPACING)
             .push(Text::new("Courses").font(font::SMME))
@@ -145,6 +143,6 @@ impl CoursesWidget {
             content = content.push(panel.view(state, is_logged_in));
         }
 
-        content.width(Length::FillPortion(1)).into()
+        content.width(Length::FillPortion(1))
     }
 }

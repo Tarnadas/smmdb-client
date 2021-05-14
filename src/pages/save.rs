@@ -6,7 +6,6 @@ use crate::{
 
 use anyhow::Result;
 use iced::{Element, Row};
-use smmdb_lib::SavedCourse;
 use std::collections::HashMap;
 
 #[derive(Clone, Debug)]

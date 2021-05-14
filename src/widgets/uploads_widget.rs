@@ -6,13 +6,11 @@ use crate::{
 };
 
 use iced::{
-    button, pick_list, scrollable, text_input, Align, Button, Element, Length, Row, Scrollable,
-    Space, Text,
+    button, pick_list, text_input, Align, Button, Column, Element, Length, Row, Space, Text,
 };
 
 #[derive(Clone, Debug)]
 pub struct UploadsWidget {
-    state: scrollable::State,
     title_state: text_input::State,
     uploader_state: text_input::State,
     difficulty_state: pick_list::State<Difficulty>,
@@ -25,7 +23,6 @@ pub struct UploadsWidget {
 impl UploadsWidget {
     pub fn new() -> UploadsWidget {
         UploadsWidget {
-            state: scrollable::State::new(),
             title_state: text_input::State::new(),
             uploader_state: text_input::State::new(),
             difficulty_state: pick_list::State::default(),
@@ -84,7 +81,7 @@ impl UploadsWidget {
             .push(Space::with_width(Length::Units(16)))
             .push(forward_button);
 
-        let mut content = Scrollable::new(&mut self.state)
+        let mut content = Column::new()
             .padding(CONTAINER_PADDING)
             .spacing(LIST_SPACING)
             .push(Text::new("Uploads").font(font::SMME))
