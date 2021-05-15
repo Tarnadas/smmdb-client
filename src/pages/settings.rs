@@ -47,7 +47,7 @@ impl SettingsPage {
         *self.prev_page.clone()
     }
 
-    pub fn view<'a>(&'a mut self, error_state: &AppErrorState) -> Element<crate::Message> {
+    pub fn view(&mut self, error_state: &AppErrorState) -> Element<Message> {
         let empty = "".to_string();
         let mut content = Column::new()
             .padding(CONTAINER_PADDING)

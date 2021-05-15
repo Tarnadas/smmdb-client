@@ -94,6 +94,36 @@ impl button::StyleSheet for DefaultButtonDangerStyle {
     }
 }
 
+pub struct DeleteButtonStyle;
+
+impl button::StyleSheet for DeleteButtonStyle {
+    fn active(&self) -> button::Style {
+        button::Style {
+            background: Some(BUTTON_ACTIVE),
+            border_radius: 4.,
+            border_width: 0.,
+            ..button::Style::default()
+        }
+    }
+
+    fn hovered(&self) -> button::Style {
+        button::Style {
+            text_color: Color::WHITE,
+            background: Some(BUTTON_DANGER),
+            border_radius: 4.,
+            ..button::Style::default()
+        }
+    }
+
+    fn disabled(&self) -> button::Style {
+        button::Style {
+            background: Some(BUTTON_DISABLED),
+            border_radius: 4.,
+            ..button::Style::default()
+        }
+    }
+}
+
 pub struct DefaultTextInputStyle;
 
 impl text_input::StyleSheet for DefaultTextInputStyle {

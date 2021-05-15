@@ -1,5 +1,10 @@
 use crate::{
-    components::VotingPanel, font::*, icon, smmdb::Course2Response, styles::*, AppState, Message,
+    components::VotingPanel,
+    font::*,
+    icon,
+    smmdb::{Course2Response, SmmdbUser},
+    styles::*,
+    AppState, Message,
 };
 
 use iced::{
@@ -57,7 +62,16 @@ impl CoursePanel {
         self.course_response = Some(course_response);
     }
 
-    pub fn view(&mut self, state: &AppState, index: usize, is_logged_in: bool) -> Element<Message> {
+    pub fn delete_response(&mut self) {
+        self.course_response = None;
+    }
+
+    pub fn view(
+        &mut self,
+        state: &AppState,
+        index: usize,
+        smmdb_user: Option<&SmmdbUser>,
+    ) -> impl Into<Element<Message>> {
         let content: Element<Message> = if let Some(course) = &self.course {
             match &**course {
                 CourseEntry::SavedCourse(course) => {
@@ -71,7 +85,7 @@ impl CoursePanel {
                             course_response.get_id().clone(),
                             course_response.get_votes(),
                             course_response.get_own_vote(),
-                            is_logged_in,
+                            smmdb_user,
                         );
                         inner_content = inner_content
                             .push(voting_content)
@@ -256,7 +270,9 @@ impl CoursePanel {
                         _ => delete_button.on_press(Message::InitDeleteCourse(index)),
                     };
 
-                    if is_logged_in && self.course_response.is_none() && state != &AppState::Loading
+                    if smmdb_user.is_some()
+                        && self.course_response.is_none()
+                        && state != &AppState::Loading
                     {
                         let upload_button = Button::new(
                             &mut self.upload_state,
@@ -310,7 +326,6 @@ impl CoursePanel {
             .push(panel)
             .push(Space::with_width(Length::Units(10)))
             .push(actions)
-            .into()
     }
 }
 
@@ -487,36 +502,6 @@ impl button::StyleSheet for DownloadButtonStyle {
                 }
                 _ => Some(BUTTON_HOVER),
             },
-            border_radius: 4.,
-            ..button::Style::default()
-        }
-    }
-
-    fn disabled(&self) -> button::Style {
-        button::Style {
-            background: Some(BUTTON_DISABLED),
-            border_radius: 4.,
-            ..button::Style::default()
-        }
-    }
-}
-
-struct DeleteButtonStyle;
-
-impl button::StyleSheet for DeleteButtonStyle {
-    fn active(&self) -> button::Style {
-        button::Style {
-            background: Some(BUTTON_ACTIVE),
-            border_radius: 4.,
-            border_width: 0.,
-            ..button::Style::default()
-        }
-    }
-
-    fn hovered(&self) -> button::Style {
-        button::Style {
-            text_color: Color::WHITE,
-            background: Some(BUTTON_DANGER),
             border_radius: 4.,
             ..button::Style::default()
         }

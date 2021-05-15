@@ -39,7 +39,6 @@ impl SmmdbWidget {
         &'a mut self,
         state: &AppState,
         smmdb: &'a mut Smmdb,
-        is_logged_in: bool,
     ) -> impl Into<Element<crate::Message>> {
         let courses_button = Button::new(&mut self.courses_state, Text::new("Courses".to_string()))
             .style(DefaultButtonStyle)
@@ -65,8 +64,8 @@ impl SmmdbWidget {
             .push(tab_buttons);
 
         match self.tab {
-            SmmdbTab::Courses => content.push(self.courses_widget.view(state, smmdb, is_logged_in)),
-            SmmdbTab::Uploads => content.push(self.uploads_widget.view(state, smmdb, is_logged_in)),
+            SmmdbTab::Courses => content.push(self.courses_widget.view(state, smmdb)),
+            SmmdbTab::Uploads => content.push(self.uploads_widget.view(state, smmdb)),
         }
     }
 }

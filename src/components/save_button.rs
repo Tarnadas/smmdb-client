@@ -19,7 +19,7 @@ impl SaveButton {
         }
     }
 
-    pub fn view(&mut self, state: &AppState) -> Element<Message> {
+    pub fn view(&mut self, state: &AppState) -> impl Into<Element<Message>> {
         let mut save_button = Button::new(&mut self.state, Text::new(&self.display_name))
             .padding(BUTTON_PADDING)
             .style(SaveButtonStyle);
@@ -27,7 +27,7 @@ impl SaveButton {
             AppState::Loading => save_button,
             _ => save_button.on_press(Message::OpenSave(self.save.clone())),
         };
-        save_button.into()
+        save_button
     }
 }
 

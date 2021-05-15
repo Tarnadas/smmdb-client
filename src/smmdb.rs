@@ -14,8 +14,8 @@ use std::{
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct SmmdbUser {
-    id: String,
-    username: String,
+    pub id: String,
+    pub username: String,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -65,6 +65,10 @@ impl Smmdb {
         }
     }
 
+    pub fn get_user(&self) -> Option<&SmmdbUser> {
+        self.user.as_ref()
+    }
+
     pub fn set_user(&mut self, user: Option<SmmdbUser>) {
         self.user = user;
         if let Some(user) = &self.user {
@@ -93,6 +97,10 @@ impl Smmdb {
                     self.course_panels.insert(course.get_id().clone(), course);
                 });
         }
+    }
+
+    pub fn delete_course_response(&mut self, id: String) {
+        self.own_course_responses.remove(&id);
     }
 
     pub fn set_own_courses(&mut self, courses: Vec<Course2Response>, update_panels: bool) {
@@ -290,6 +298,16 @@ impl Smmdb {
         Ok(response)
     }
 
+    pub async fn delete_course(id: String, apikey: String) -> Result<()> {
+        Client::new()
+            .delete(format!("https://api.smmdb.net/courses2/{}", id))
+            .header(header::AUTHORIZATION, &format!("APIKEY {}", apikey))
+            .send()
+            .await?;
+
+        Ok(())
+    }
+
     pub async fn try_sign_in(apikey: String) -> std::result::Result<SmmdbUser, String> {
         match Client::new()
             .post("https://api.smmdb.net/login")
@@ -357,6 +375,10 @@ pub struct Course2Response {
 impl Course2Response {
     pub fn get_id(&self) -> &String {
         &self.id
+    }
+
+    pub fn get_owner(&self) -> &String {
+        &self.owner
     }
 
     pub fn get_votes(&self) -> i32 {

@@ -36,6 +36,7 @@ pub enum AppState {
     SwapSelect(usize),
     DownloadSelect(usize),
     DeleteSelect(usize),
+    DeleteSmmdbSelect(String),
     Downloading {
         save_index: usize,
         smmdb_id: String,
@@ -76,6 +77,9 @@ pub enum Message {
     DownloadProgressed(Progress),
     InitDeleteCourse(usize),
     DeleteCourse(usize),
+    InitDeleteSmmdbCourse(String),
+    DeleteSmmdbCourse(String),
+    ReloadAfterDelete(String),
     TitleChanged(String),
     UploaderChanged(String),
     DifficultyChanged(Difficulty),
@@ -484,6 +488,39 @@ impl Application for App {
                     _ => Command::none(),
                 }
             }
+            Message::InitDeleteSmmdbCourse(id) => {
+                self.state = AppState::DeleteSmmdbSelect(id);
+                Command::none()
+            }
+            Message::DeleteSmmdbCourse(id) => {
+                self.state = AppState::Loading;
+
+                if let Some(apikey) = &self.settings.apikey {
+                    let apikey = apikey.clone();
+                    Command::perform(Smmdb::delete_course(id.clone(), apikey), move |res| {
+                        if let Err(err) = res {
+                            eprintln!("{:?}", err);
+                        }
+                        Message::ReloadAfterDelete(id.clone())
+                    })
+                } else {
+                    Command::none()
+                }
+            }
+            Message::ReloadAfterDelete(id) => {
+                self.state = AppState::Default;
+                self.error_state = AppErrorState::None;
+
+                self.smmdb.delete_course_response(id);
+                if let Page::Save(ref mut save_page) = self.current_page {
+                    save_page.set_course_response(self.smmdb.get_course_responses())
+                }
+
+                Command::batch(vec![
+                    async { Message::FetchCourses }.into(),
+                    async { Message::FetchSelfCourses }.into(),
+                ])
+            }
             Message::TitleChanged(title) => {
                 self.smmdb.set_title(title);
                 Command::none()
@@ -686,7 +723,8 @@ impl Application for App {
             AppState::UploadSelect(_)
             | AppState::SwapSelect(_)
             | AppState::DownloadSelect(_)
-            | AppState::DeleteSelect(_) => subscription::events().map(|event| match event {
+            | AppState::DeleteSelect(_)
+            | AppState::DeleteSmmdbSelect(_) => subscription::events().map(|event| match event {
                 Event::Keyboard(keyboard::Event::KeyReleased {
                     key_code: keyboard::KeyCode::Escape,
                     modifiers: _,
@@ -721,9 +759,7 @@ impl Application for App {
                 )
                 .push(match &mut self.current_page {
                     Page::Init(init_page) => init_page.view(&self.state, &self.error_state),
-                    Page::Save(save_page) => {
-                        save_page.view(&self.state, &mut self.smmdb, self.settings.apikey.is_some())
-                    }
+                    Page::Save(save_page) => save_page.view(&self.state, &mut self.smmdb),
                     Page::Settings(settings_page) => settings_page.view(&self.error_state),
                 }),
         )

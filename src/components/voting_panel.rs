@@ -1,4 +1,4 @@
-use crate::{icon, styles::*, AppState, Message};
+use crate::{icon, smmdb::SmmdbUser, styles::*, AppState, Message};
 
 use iced::{
     button, container, Align, Background, Button, Color, Column, Element, Length, Space, Text,
@@ -23,8 +23,9 @@ impl VotingPanel {
         course_id: String,
         votes: i32,
         own_vote: i32,
-        is_logged_in: bool,
-    ) -> Element<Message> {
+        smmdb_user: Option<&SmmdbUser>,
+    ) -> impl Into<Element<Message>> {
+        let is_logged_in = smmdb_user.is_some();
         let mut upvote = Button::new(
             &mut self.upvote_state,
             if own_vote > 0 {
@@ -80,7 +81,6 @@ impl VotingPanel {
             .push(votes)
             .push(Space::with_height(Length::Units(16)))
             .push(downvote)
-            .into()
     }
 }
 

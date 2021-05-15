@@ -18,11 +18,7 @@ impl InitPage {
 }
 
 impl InitPage {
-    pub fn view<'a>(
-        &'a mut self,
-        state: &AppState,
-        error_state: &AppErrorState,
-    ) -> Element<crate::Message> {
+    pub fn view(&mut self, state: &AppState, error_state: &AppErrorState) -> Element<Message> {
         let mut content = self.save_buttons.iter_mut().fold(
             Column::new()
                 .padding(CONTAINER_PADDING)

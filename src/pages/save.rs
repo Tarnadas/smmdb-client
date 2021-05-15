@@ -1,7 +1,7 @@
 use crate::{
     smmdb::Course2Response,
     widgets::{SaveWidget, SmmdbTab, SmmdbWidget},
-    AppState, Smmdb,
+    AppState, Message, Smmdb,
 };
 
 use anyhow::Result;
@@ -32,24 +32,20 @@ impl SavePage {
 
     pub fn set_course_response(&mut self, courses: &HashMap<String, Course2Response>) {
         self.save_widget.set_course_response(courses);
+        self.generate_course_panels(courses);
     }
 
     pub fn set_smmdb_tab(&mut self, tab: SmmdbTab) {
         self.smmdb_widget.set_smmdb_tab(tab);
     }
 
-    pub fn view<'a>(
-        &'a mut self,
-        state: &AppState,
-        smmdb: &'a mut Smmdb,
-        is_logged_in: bool,
-    ) -> Element<crate::Message> {
+    pub fn view<'a>(&'a mut self, state: &AppState, smmdb: &'a mut Smmdb) -> Element<Message> {
         Row::new()
             .push(
                 self.save_widget
-                    .view(state, &self.display_name, is_logged_in),
+                    .view(state, &self.display_name, smmdb.get_user()),
             )
-            .push(self.smmdb_widget.view(state, smmdb, is_logged_in))
+            .push(self.smmdb_widget.view(state, smmdb))
             .into()
     }
 
