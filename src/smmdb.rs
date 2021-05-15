@@ -100,6 +100,7 @@ impl Smmdb {
     }
 
     pub fn delete_course_response(&mut self, id: String) {
+        self.course_responses.remove(&id);
         self.own_course_responses.remove(&id);
     }
 
@@ -226,6 +227,9 @@ impl Smmdb {
 
     pub fn set_own_vote(&mut self, course_id: String, value: i32) {
         if let Some(course) = self.course_panels.get_mut(&course_id) {
+            course.set_own_vote(value);
+        }
+        if let Some(course) = self.own_course_panels.get_mut(&course_id) {
             course.set_own_vote(value);
         }
         if let Some(course) = self.course_responses.get_mut(&course_id) {
