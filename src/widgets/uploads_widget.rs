@@ -1,5 +1,4 @@
 use crate::{
-    font,
     smmdb::{Difficulty, SortOptions},
     styles::*,
     AppState, Message, Smmdb,
@@ -37,7 +36,7 @@ impl UploadsWidget {
         &'a mut self,
         state: &AppState,
         smmdb: &'a mut Smmdb,
-    ) -> Element<crate::Message> {
+    ) -> impl Into<Element<Message>> {
         let query_params = smmdb.get_own_query_params();
 
         let paginate_text = Text::new(&format!(
@@ -81,9 +80,8 @@ impl UploadsWidget {
             .push(forward_button);
 
         let mut content = Column::new()
-            .padding(CONTAINER_PADDING)
+            .padding(TAB_PADDING)
             .spacing(LIST_SPACING)
-            .push(Text::new("Uploads").font(font::SMME))
             .push(paginator);
 
         let smmdb_user = smmdb.get_user().cloned();
@@ -91,6 +89,6 @@ impl UploadsWidget {
             content = content.push(panel.view(state, smmdb_user.as_ref()));
         }
 
-        content.width(Length::FillPortion(1)).into()
+        content.width(Length::FillPortion(1))
     }
 }

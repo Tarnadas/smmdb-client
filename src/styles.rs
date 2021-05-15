@@ -1,15 +1,19 @@
 #![allow(dead_code)]
 
-use iced::{button, pick_list, text_input, Background, Color};
+use iced::{button, container, pick_list, text_input, Background, Color};
 
 // Spacings
 pub const CONTAINER_PADDING: u16 = 20;
+pub const TAB_PADDING: u16 = 12;
 pub const BUTTON_PADDING: u16 = 8;
+pub const TAB_BUTTON_PADDING: u16 = 6;
 pub const PAGE_SPACING: u16 = 20;
 pub const LIST_SPACING: u16 = 12;
+pub const TAB_SPACING: u16 = 2;
 
 // Colors
 pub const COLOR_YELLOW: Color = Color::from_rgb(1., 0.812, 0.);
+pub const COLOR_YELLOW2: Color = Color::from_rgb(1., 0.86, 0.2);
 pub const COLOR_LIGHT_YELLOW: Color = Color::from_rgb(0.996, 0.952, 0.827);
 pub const COLOR_LIGHTER_YELLOW: Color = Color::from_rgb(1., 0.992, 0.933);
 pub const COLOR_GREEN: Color = Color::from_rgb(0., 0.592, 0.518);
@@ -25,9 +29,11 @@ pub const PANEL_ACTIVE: Background = Background::Color(Color::WHITE);
 pub const PANEL_DOWNLOAD: Background = Background::Color(COLOR_LIGHTER_GREEN);
 pub const PANEL_SELECT_ACTIVE: Background = Background::Color(COLOR_LIGHTER_GREEN);
 pub const PANEL_SELECT_HOVER: Background = Background::Color(COLOR_LIGHT_GREEN);
+pub const PANEL_TAB: Background = Background::Color(COLOR_YELLOW2);
 
 // Buttons
 pub const BUTTON_ACTIVE: Background = Background::Color(Color::WHITE);
+pub const BUTTON_TAB_ACTIVE: Background = Background::Color(COLOR_LIGHT_YELLOW);
 pub const BUTTON_SELECT_ACTIVE: Background = Background::Color(COLOR_LIGHTER_YELLOW);
 pub const BUTTON_SELECT_CANCEL: Background = Background::Color(COLOR_RED);
 pub const BUTTON_HOVER: Background = Background::Color(COLOR_LIGHT_GREEN);
@@ -120,6 +126,58 @@ impl button::StyleSheet for DeleteButtonStyle {
             background: Some(BUTTON_DISABLED),
             border_radius: 4.,
             ..button::Style::default()
+        }
+    }
+}
+
+pub struct TabButtonStyle(pub bool);
+
+impl button::StyleSheet for TabButtonStyle {
+    fn active(&self) -> button::Style {
+        button::Style {
+            background: Some(if self.0 {
+                BUTTON_TAB_ACTIVE
+            } else {
+                BUTTON_ACTIVE
+            }),
+            border_radius: 2.,
+            border_width: 1.,
+            border_color: if self.0 {
+                Color::BLACK
+            } else {
+                Color::TRANSPARENT
+            },
+            ..button::Style::default()
+        }
+    }
+
+    fn hovered(&self) -> button::Style {
+        button::Style {
+            background: Some(if self.0 {
+                BUTTON_TAB_ACTIVE
+            } else {
+                BUTTON_HOVER
+            }),
+            border_radius: 2.,
+            border_width: 1.,
+            border_color: if self.0 {
+                Color::BLACK
+            } else {
+                Color::TRANSPARENT
+            },
+            ..button::Style::default()
+        }
+    }
+}
+
+pub struct TabContainerStyle;
+
+impl container::StyleSheet for TabContainerStyle {
+    fn style(&self) -> container::Style {
+        container::Style {
+            background: Some(PANEL_TAB),
+            border_radius: 8.,
+            ..container::Style::default()
         }
     }
 }

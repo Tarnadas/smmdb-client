@@ -1,9 +1,11 @@
 use super::{CoursesWidget, UploadsWidget};
 use crate::{font, styles::*, AppState, Message, Smmdb};
 
-use iced::{button, scrollable, Align, Button, Element, Length, Row, Scrollable, Text};
+use iced::{
+    button, scrollable, Align, Button, Container, Element, Length, Row, Scrollable, Space, Text,
+};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum SmmdbTab {
     Courses,
     Uploads,
@@ -41,12 +43,12 @@ impl SmmdbWidget {
         smmdb: &'a mut Smmdb,
     ) -> impl Into<Element<crate::Message>> {
         let courses_button = Button::new(&mut self.courses_state, Text::new("Courses".to_string()))
-            .style(DefaultButtonStyle)
-            .padding(BUTTON_PADDING)
+            .style(TabButtonStyle(self.tab == SmmdbTab::Courses))
+            .padding(TAB_BUTTON_PADDING)
             .on_press(Message::SetSmmdbTab(SmmdbTab::Courses));
         let uploads_button = Button::new(&mut self.uploads_state, Text::new("Uploads".to_string()))
-            .style(DefaultButtonStyle)
-            .padding(BUTTON_PADDING)
+            .style(TabButtonStyle(self.tab == SmmdbTab::Uploads))
+            .padding(TAB_BUTTON_PADDING)
             .on_press(Message::SetSmmdbTab(SmmdbTab::Uploads));
 
         let tab_buttons = Row::new()
@@ -56,16 +58,19 @@ impl SmmdbWidget {
             .push(courses_button)
             .push(uploads_button);
 
-        let content = Scrollable::new(&mut self.state)
+        let tab_content = Container::new(match self.tab {
+            SmmdbTab::Courses => self.courses_widget.view(state, smmdb).into(),
+            SmmdbTab::Uploads => self.uploads_widget.view(state, smmdb).into(),
+        })
+        .style(TabContainerStyle);
+
+        Scrollable::new(&mut self.state)
             .padding(CONTAINER_PADDING)
-            .spacing(LIST_SPACING)
+            .spacing(TAB_SPACING)
             .width(Length::FillPortion(1))
             .push(Text::new("SMMDB").font(font::SMME))
-            .push(tab_buttons);
-
-        match self.tab {
-            SmmdbTab::Courses => content.push(self.courses_widget.view(state, smmdb)),
-            SmmdbTab::Uploads => content.push(self.uploads_widget.view(state, smmdb)),
-        }
+            .push(Space::with_height(Length::Units(8)))
+            .push(tab_buttons)
+            .push(tab_content)
     }
 }

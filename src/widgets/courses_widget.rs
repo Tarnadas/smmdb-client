@@ -132,9 +132,8 @@ impl CoursesWidget {
             .push(forward_button);
 
         let mut content = Column::new()
-            .padding(CONTAINER_PADDING)
+            .padding(TAB_PADDING)
             .spacing(LIST_SPACING)
-            .push(Text::new("Courses").font(font::SMME))
             .push(filter)
             .push(Space::with_height(Length::Units(8)))
             .push(paginator);
