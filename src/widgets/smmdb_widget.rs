@@ -62,6 +62,7 @@ impl SmmdbWidget {
             SmmdbTab::Courses => self.courses_widget.view(state, smmdb).into(),
             SmmdbTab::Uploads => self.uploads_widget.view(state, smmdb).into(),
         })
+        .width(Length::Fill)
         .style(TabContainerStyle);
 
         Scrollable::new(&mut self.state)
