@@ -23,9 +23,33 @@ You can download Windows, Linux and MacOS binaries in the [Github release sectio
 
 You can install SMMDB Client via Cargo:
 
+It is recommended to install Cargo via [Rustup](https://rustup.rs/)
+
+#### Prerequisites (debian/ubuntu)
+
+Before installing the client, run the following commands:
+
+`sudo apt-get install cmake libfreetype6-dev libfontconfig1-dev xclip sudo libgtk-3-dev`
+
+#### nightly install (all OSs)
+
+After that, run these commands to fix rustup with nightly:
+
+`rustup install nightly`
+
+Set nightly as your default for now:
+
+`rustup default nightly`
+
+Now you can install the smmdb client:
+
 `cargo install --git https://github.com/Tarnadas/smmdb-client.git`
 
-It is recommended to install Cargo via [Rustup](https://rustup.rs/)
+Once you have installed smmdb, you can switch back to stable Rust:
+
+`rustup default stable`
+
+To open the smmdb client type `smmbd` in your terminal
 
 ### via Chocolatey (Windows Only)
 
