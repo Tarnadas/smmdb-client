@@ -19,6 +19,21 @@ For planned features, please visit the [Github issue page](https://github.com/Ta
 
 You can download Windows, Linux and MacOS binaries in the [Github release section](https://github.com/Tarnadas/smmdb-client/releases)
 
+Depending on your operating system, extract the file and remplace _YOUROPERATINGSYSTEM_ with your operating system
+
+Extract the file: `tar xzvf smmdb-client-YOUROPERATINGSYSTEM.tar.gz`
+
+Run `./smmdb`
+
+#### on Ubuntu
+
+If you are on ubuntu, run the following command:
+
+```
+wget http://nz2.archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+```
+
 ### via Cargo
 
 You can install SMMDB Client via Cargo:
@@ -29,7 +44,20 @@ It is recommended to install Cargo via [Rustup](https://rustup.rs/)
 
 Before installing the client, run the following commands:
 
-`sudo apt-get install cmake libfreetype6-dev libfontconfig1-dev xclip sudo libgtk-3-dev`
+`sudo apt-get install cmake libfreetype6-dev libfontconfig1-dev xclip sudo libgtk-3-dev libssl-dev`
+
+You might also need to install the following:
+
+```
+wget http://nz2.archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+```
+
+#### MacOS prerequisites
+
+For Mac OS X, Run this command:
+
+`xcode-select --install`
 
 #### nightly install (all OSs)
 
